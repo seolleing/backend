@@ -1,5 +1,6 @@
 package com.out4ider.selleing_backend.domain.user.entity;
 
+import com.out4ider.selleing_backend.domain.user.dto.UserResponseDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,4 +28,8 @@ public class UserEntity {
 
     @Column(name = "role")
     private String role;
+
+    public UserResponseDto toUserResponseDto() {
+        return new UserResponseDto(this.userId, this.getNickname());
+    }
 }

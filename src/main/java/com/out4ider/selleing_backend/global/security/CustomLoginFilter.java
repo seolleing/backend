@@ -61,8 +61,9 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
         GrantedAuthority grantedAuthority = iterator.next();
         String role = grantedAuthority.getAuthority();
 
+
         CustomUserDetails customUserDetails = (CustomUserDetails) authResult.getPrincipal();
-        response.getWriter().write(customUserDetails.getNickname());
+        response.getWriter().write(objectMapper.writeValueAsString(customUserDetails.getUserResponseDto()));
 
         String access = jwtUtil.createToken("access", email, role, 600000L);
         String refresh = jwtUtil.createToken("refresh", email, role, 86400000L);
