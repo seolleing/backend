@@ -8,12 +8,14 @@ import com.out4ider.selleing_backend.domain.novel.repository.NovelRepository;
 import com.out4ider.selleing_backend.domain.user.entity.UserEntity;
 import com.out4ider.selleing_backend.domain.user.repository.UserRepository;
 import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
+import com.out4ider.selleing_backend.global.exception.kind.NotAuthorizedException;
 import com.out4ider.selleing_backend.global.exception.kind.NotFoundElementException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
 
 @Service
 @RequiredArgsConstructor
@@ -34,5 +36,24 @@ public class CommentService {
                 .build();
         commentRepository.save(commentEntity);
         return commentEntity.getId();
+    }
+
+    public void update(Long commentId, String content, String name) {
+        CommentEntity commentEntity = commentRepository.findByIdWithUser(commentId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+        if(commentEntity.getUser().getEmail().equals(name)){
+            commentEntity.setContent(content);
+            commentRepository.save(commentEntity);
+        }else{
+            throw new NotAuthorizedException(ExceptionEnum.NOTAUTHORIZED.ordinal(), "you dont have authorization", HttpStatus.FORBIDDEN);
+        }
+    }
+
+    public void delete(Long commentId, String name) {
+        CommentEntity commentEntity = commentRepository.findByIdWithUser(commentId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+        if(commentEntity.getUser().getEmail().equals(name)){
+            commentRepository.delete(commentEntity);
+        }else{
+            throw new NotAuthorizedException(ExceptionEnum.NOTAUTHORIZED.ordinal(), "you dont have authorization", HttpStatus.FORBIDDEN);
+        }
     }
 }

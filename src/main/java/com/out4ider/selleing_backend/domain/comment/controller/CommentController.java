@@ -4,10 +4,7 @@ import com.out4ider.selleing_backend.domain.comment.dto.CommentRequestDto;
 import com.out4ider.selleing_backend.domain.comment.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
@@ -23,6 +20,16 @@ public class CommentController {
         return ResponseEntity.ok().body(commentId);
     }
 
-//    @PutMapping("/{commentId}")
-//    public ResponseEntity<?> updateComment(@PathVariable Long commentId) {}
+    @PutMapping("/{commentId}")
+    public ResponseEntity<?> updateComment(@PathVariable(name = "commentId") Long commentId, @RequestParam(name = "content") String content, Principal principal) {
+        commentService.update(commentId, content, principal.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<?> deleteComment(@PathVariable(name = "commentId") Long commentId, Principal principal) {
+        commentService.delete(commentId, principal.getName());
+        return ResponseEntity.ok().build();
+    }
+
 }

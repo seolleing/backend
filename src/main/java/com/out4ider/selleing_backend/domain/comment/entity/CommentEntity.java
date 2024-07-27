@@ -3,10 +3,7 @@ package com.out4ider.selleing_backend.domain.comment.entity;
 import com.out4ider.selleing_backend.domain.novel.entity.NovelEntity;
 import com.out4ider.selleing_backend.domain.user.entity.UserEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name="comment")
@@ -29,5 +26,6 @@ public class CommentEntity {
     private NovelEntity novel;
 
     @Column(name="comment_content")
+    @Setter
     private String content;
 }
