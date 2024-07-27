@@ -1,11 +1,13 @@
 package com.out4ider.selleing_backend.domain.comment.controller;
 
 import com.out4ider.selleing_backend.domain.comment.dto.CommentRequestDto;
-import com.out4ider.selleing_backend.domain.comment.dto.CommentResponseDto;
 import com.out4ider.selleing_backend.domain.comment.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/comments")
@@ -15,8 +17,8 @@ public class CommentController {
 
     @PostMapping
     public ResponseEntity<?> saveComment(@RequestBody CommentRequestDto commentRequestDto) {
-        CommentResponseDto commentResponseDto = commentService.save(commentRequestDto);
-        return ResponseEntity.ok().body(commentResponseDto);
+        Long commentId = commentService.save(commentRequestDto);
+        return ResponseEntity.ok().body(commentId);
     }
 
 //    @PutMapping("/{commentId}")

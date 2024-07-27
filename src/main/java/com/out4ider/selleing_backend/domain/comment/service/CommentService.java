@@ -1,7 +1,6 @@
 package com.out4ider.selleing_backend.domain.comment.service;
 
 import com.out4ider.selleing_backend.domain.comment.dto.CommentRequestDto;
-import com.out4ider.selleing_backend.domain.comment.dto.CommentResponseDto;
 import com.out4ider.selleing_backend.domain.comment.entity.CommentEntity;
 import com.out4ider.selleing_backend.domain.comment.repository.CommentRepository;
 import com.out4ider.selleing_backend.domain.novel.entity.NovelEntity;
@@ -19,7 +18,7 @@ public class CommentService {
     private final NovelRepository novelRepository;
 
     @Transactional
-    public CommentResponseDto save(CommentRequestDto commentRequestDto) {
+    public Long save(CommentRequestDto commentRequestDto) {
         log.info("{}",commentRequestDto.getNovelId());
         NovelEntity novelEntity = novelRepository.findById(commentRequestDto.getNovelId()).orElseThrow(/* 예외 발생 */);
         CommentEntity commentEntity = CommentEntity.builder()
@@ -27,6 +26,6 @@ public class CommentService {
                 .content(commentRequestDto.getContent())
                 .build();
         commentRepository.save(commentEntity);
-        return commentEntity.toCommentResponseDto();
+        return commentEntity.getId();
     }
 }

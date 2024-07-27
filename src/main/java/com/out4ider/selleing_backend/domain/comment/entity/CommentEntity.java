@@ -1,6 +1,5 @@
 package com.out4ider.selleing_backend.domain.comment.entity;
 
-import com.out4ider.selleing_backend.domain.comment.dto.CommentResponseDto;
 import com.out4ider.selleing_backend.domain.novel.entity.NovelEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,11 +27,4 @@ public class CommentEntity {
 
     @Column(name="comment_content")
     private String content;
-
-    public CommentResponseDto toCommentResponseDto() {
-        return CommentResponseDto.builder()
-                .commentId(this.id)
-                .content(this.content)
-                .build();
-    }
 }
