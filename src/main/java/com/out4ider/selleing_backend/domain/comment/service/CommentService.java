@@ -19,7 +19,6 @@ public class CommentService {
 
     @Transactional
     public Long save(CommentRequestDto commentRequestDto) {
-        log.info("{}",commentRequestDto.getNovelId());
         NovelEntity novelEntity = novelRepository.findById(commentRequestDto.getNovelId()).orElseThrow(/* 예외 발생 */);
         CommentEntity commentEntity = CommentEntity.builder()
                 .novel(novelEntity)
