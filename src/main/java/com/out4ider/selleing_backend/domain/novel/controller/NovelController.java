@@ -1,8 +1,8 @@
 package com.out4ider.selleing_backend.domain.novel.controller;
 
-import com.out4ider.selleing_backend.domain.novel.dto.NovelInfoResponseDto;
 import com.out4ider.selleing_backend.domain.novel.dto.NovelRequestDto;
 import com.out4ider.selleing_backend.domain.novel.dto.NovelResponseDto;
+import com.out4ider.selleing_backend.domain.novel.dto.NovelTotalResponseDto;
 import com.out4ider.selleing_backend.domain.novel.service.NovelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -31,8 +31,8 @@ public class NovelController {
 
     @GetMapping("/{novelId}")
     public ResponseEntity<?> getNovel(@PathVariable(name = "novelId") Long novelId){
-        List<NovelInfoResponseDto> novelInfoResponseDtos = novelService.get(novelId);
-        return ResponseEntity.ok().body(novelInfoResponseDtos);
+        NovelTotalResponseDto novelTotalResponseDtos = novelService.get(novelId);
+        return ResponseEntity.ok().body(novelTotalResponseDtos);
     }
 
     @PatchMapping("/{novelId}")
