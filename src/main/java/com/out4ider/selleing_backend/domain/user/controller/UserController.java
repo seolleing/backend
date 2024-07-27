@@ -22,14 +22,14 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{email}")
-    public ResponseEntity<?> checkEmail(@PathVariable String email) {
+    @GetMapping
+    public ResponseEntity<?> checkEmail(@RequestParam(name = "email") String email) {
         boolean checkEmail = userService.checkEmail(email);
         return ResponseEntity.ok().body(checkEmail);
     }
 
-    @PatchMapping("/{nickname}")
-    public ResponseEntity<?> updateUser(Principal principal,@PathVariable(name = "nickname") String nickname) {
+    @PatchMapping
+    public ResponseEntity<?> updateUser(Principal principal,@RequestParam(name = "nickname") String nickname) {
         userService.update(principal.getName(), nickname);
         return ResponseEntity.ok().body(nickname);
     }
