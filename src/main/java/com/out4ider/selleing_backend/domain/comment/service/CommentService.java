@@ -5,9 +5,14 @@ import com.out4ider.selleing_backend.domain.comment.entity.CommentEntity;
 import com.out4ider.selleing_backend.domain.comment.repository.CommentRepository;
 import com.out4ider.selleing_backend.domain.novel.entity.NovelEntity;
 import com.out4ider.selleing_backend.domain.novel.repository.NovelRepository;
+import com.out4ider.selleing_backend.domain.user.entity.UserEntity;
+import com.out4ider.selleing_backend.domain.user.repository.UserRepository;
+import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
+import com.out4ider.selleing_backend.global.exception.kind.NotFoundElementException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,12 +21,15 @@ import org.springframework.stereotype.Service;
 public class CommentService {
     private final CommentRepository commentRepository;
     private final NovelRepository novelRepository;
+    private final UserRepository userRepository;
 
     @Transactional
-    public Long save(CommentRequestDto commentRequestDto) {
-        NovelEntity novelEntity = novelRepository.findById(commentRequestDto.getNovelId()).orElseThrow(/* 예외 발생 */);
+    public Long save(CommentRequestDto commentRequestDto, String email) {
+        UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+        NovelEntity novelEntity = novelRepository.findById(commentRequestDto.getNovelId()).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         CommentEntity commentEntity = CommentEntity.builder()
                 .novel(novelEntity)
+                .user(userEntity)
                 .content(commentRequestDto.getContent())
                 .build();
         commentRepository.save(commentEntity);

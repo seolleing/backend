@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/api/comments")
 @RequiredArgsConstructor
@@ -16,8 +18,8 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping
-    public ResponseEntity<?> saveComment(@RequestBody CommentRequestDto commentRequestDto) {
-        Long commentId = commentService.save(commentRequestDto);
+    public ResponseEntity<?> saveComment(@RequestBody CommentRequestDto commentRequestDto, Principal principal) {
+        Long commentId = commentService.save(commentRequestDto, principal.getName());
         return ResponseEntity.ok().body(commentId);
     }
 
