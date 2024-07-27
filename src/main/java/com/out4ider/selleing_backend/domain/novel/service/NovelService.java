@@ -8,11 +8,15 @@ import com.out4ider.selleing_backend.domain.novel.entity.NovelInfoEntity;
 import com.out4ider.selleing_backend.domain.novel.repository.JDBCTemplateNovelInfoRepository;
 import com.out4ider.selleing_backend.domain.novel.repository.JPANovelInfoRepository;
 import com.out4ider.selleing_backend.domain.novel.repository.NovelRepository;
+import com.out4ider.selleing_backend.domain.user.repository.UserRepository;
+import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
+import com.out4ider.selleing_backend.global.exception.kind.NotFoundElementException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,21 +27,18 @@ public class NovelService {
     private final NovelRepository novelRepository;
     private final JDBCTemplateNovelInfoRepository jdbcTemplateNovelInfoRepository;
     private final JPANovelInfoRepository jpaNovelInfoRepository;
+    private final UserRepository userRepository;
 
     @Transactional
-    public void save(NovelRequestDto novelRequestDto) {
+    public Long save(NovelRequestDto novelRequestDto) {
         NovelEntity novelEntity = NovelEntity.builder()
                 .title(novelRequestDto.getTitle())
                 .startSentence(novelRequestDto.getStartSentence())
                 .isReported(false)
                 .build();
         novelRepository.save(novelEntity);
-        List<NovelInfoEntity> novelInfoEntities = novelRequestDto.getNovelInfoRequestDtos().stream()
-                .map(novelInfoRequestDto -> NovelInfoEntity.builder()
-                .content(novelInfoRequestDto.getContent())
-                .novel(novelEntity)
-                .build()).toList();
-        jdbcTemplateNovelInfoRepository.batchInsert(novelInfoEntities);
+        jdbcTemplateNovelInfoRepository.batchInsert(novelRequestDto.getNovelInfoRequestDtos(), novelEntity.getNovelId());
+        return novelEntity.getNovelId();
     }
 
     public List<NovelResponseDto> getSome(int page, String orderby) {
@@ -51,7 +52,7 @@ public class NovelService {
 
     @Transactional
     public void updateReport(Long novelId){
-        NovelEntity novelEntity = novelRepository.findById(novelId).orElseThrow(/* 예외 발생하도록 */);
+        NovelEntity novelEntity = novelRepository.findById(novelId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         novelEntity.setReported(true);
         novelRepository.save(novelEntity);
     }

@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface JPANovelInfoRepository extends JpaRepository<NovelInfoEntity,Long> {
-    @Query("select n from NovelInfoEntity n where n.novel.novelId=?1")
+    @Query("select n from NovelInfoEntity n join fetch n.user where n.novel.novelId=?1")
     List<NovelInfoEntity> findByNovelId(Long novelId);
 }

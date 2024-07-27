@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class NovelInfoRequestDto {
-//    private Long userId;
+    private Long userId;
     private String content;
 }

@@ -8,6 +8,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NovelInfoResponseDto {
-//    private String nickname;
+    private String nickname;
     private String content;
 }

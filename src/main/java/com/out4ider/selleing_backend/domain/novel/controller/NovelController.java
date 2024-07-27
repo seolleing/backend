@@ -18,8 +18,8 @@ public class NovelController {
 
     @PostMapping
     public ResponseEntity<?> saveNovel(@RequestBody NovelRequestDto novelRequestDto){
-        novelService.save(novelRequestDto);
-        return ResponseEntity.ok().build();
+        Long novelId = novelService.save(novelRequestDto);
+        return ResponseEntity.ok().body(novelId);
     }
 
     @GetMapping
