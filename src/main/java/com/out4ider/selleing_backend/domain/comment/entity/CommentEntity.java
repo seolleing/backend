@@ -41,6 +41,7 @@ public class CommentEntity {
                 .commentId(this.id)
                 .content(this.content)
                 .nickname(this.user.getNickname())
+                .likeCount(this.likeComments.size())
                 .build();
     }
 

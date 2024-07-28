@@ -11,7 +11,7 @@ public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
     @Query("select c from CommentEntity c join fetch c.user where c.id=?1")
     Optional<CommentEntity> findByIdWithUser(Long id);
 
-    @Query("select c from CommentEntity c join fetch c.user where c.novel.novelId=?1")
+    @Query("select distinct c from CommentEntity c left join fetch c.likeComments join fetch c.user where c.novel.novelId=?1")
     List<CommentEntity> findByNovelId(Long novelId);
 
     @Query("select distinct c from CommentEntity c left join fetch c.likeComments where c.id=?1")
