@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -30,8 +31,8 @@ public class NovelController {
     }
 
     @GetMapping("/{novelId}")
-    public ResponseEntity<?> getNovel(@PathVariable(name = "novelId") Long novelId){
-        NovelTotalResponseDto novelTotalResponseDtos = novelService.get(novelId);
+    public ResponseEntity<?> getNovel(@PathVariable(name = "novelId") Long novelId, Principal principal){
+        NovelTotalResponseDto novelTotalResponseDtos = novelService.get(novelId, principal.getName());
         return ResponseEntity.ok().body(novelTotalResponseDtos);
     }
 
@@ -40,4 +41,6 @@ public class NovelController {
         novelService.updateReport(novelId);
         return ResponseEntity.ok().build();
     }
+
+
 }
