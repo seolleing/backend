@@ -16,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +34,7 @@ public class CommentService {
         CommentEntity commentEntity = CommentEntity.builder()
                 .novel(novelEntity)
                 .user(userEntity)
+                .likeComments(new ArrayList<>())
                 .content(commentRequestDto.getContent())
                 .build();
         commentRepository.save(commentEntity);
