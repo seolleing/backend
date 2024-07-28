@@ -38,6 +38,7 @@ public class NovelEntity {
                 .novelId(this.novelId)
                 .title(this.title)
                 .startSentence(this.startSentence)
+                .likeCount(this.likeNovels.size())
                 .build();
     }
 

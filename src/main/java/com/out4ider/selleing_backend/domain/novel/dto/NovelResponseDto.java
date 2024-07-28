@@ -11,5 +11,5 @@ public class NovelResponseDto {
     private Long novelId;
     private String title;
     private String startSentence;
-//    private Long likeCount
+    private int likeCount;
 }
