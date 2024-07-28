@@ -4,6 +4,7 @@ import com.out4ider.selleing_backend.domain.like.entity.LikeNovelEntity;
 import com.out4ider.selleing_backend.domain.novel.dto.NovelResponseDto;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.List;
 
@@ -29,6 +30,7 @@ public class NovelEntity {
     @Setter
     private boolean isReported;
 
+    @BatchSize(size = 100)
     @OneToMany(mappedBy = "novel", fetch = FetchType.LAZY)
     private List<LikeNovelEntity> likeNovels;
 
