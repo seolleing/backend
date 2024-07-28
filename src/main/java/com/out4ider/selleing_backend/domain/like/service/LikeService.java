@@ -11,6 +11,7 @@ import com.out4ider.selleing_backend.domain.novel.repository.NovelRepository;
 import com.out4ider.selleing_backend.domain.user.entity.UserEntity;
 import com.out4ider.selleing_backend.domain.user.repository.UserRepository;
 import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
+import com.out4ider.selleing_backend.global.exception.kind.AlreadyDoingException;
 import com.out4ider.selleing_backend.global.exception.kind.NotFoundElementException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,20 +30,36 @@ public class LikeService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public int like(Long id, String type, String email) {
+    public int likeNovel(Long id, String email) {
         int size = 0;
-        if (type.equals("novel")) {
-            NovelEntity novelEntity = novelRepository.findByIdWithLikeNovel(id).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
-            size = novelEntity.getLikeNovels().size();
-            UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
-            LikeNovelEntity likeNovelEntity = LikeNovelEntity.builder()
-                    .novel(novelEntity)
-                    .user(userEntity)
-                    .build();
-            likeNovelRepository.save(likeNovelEntity);
-            novelEntity.addLikeNovel(likeNovelEntity);
-            userEntity.addLikeNovel(likeNovelEntity);
-        } else if (type.equals("comment")) {
+        NovelEntity novelEntity = novelRepository.findByIdWithLikeNovel(id).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+        size = novelEntity.getLikeNovels().size();
+        UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+        LikeNovelEntity likeNovelEntity = LikeNovelEntity.builder()
+                .novel(novelEntity)
+                .user(userEntity)
+                .build();
+        likeNovelRepository.save(likeNovelEntity);
+        novelEntity.addLikeNovel(likeNovelEntity);
+        userEntity.addLikeNovel(likeNovelEntity);
+        return size + 1;
+    }
+
+    @Transactional
+    public int unlikeNovel(Long id, String email) {
+        int size = 0;
+        NovelEntity novelEntity = novelRepository.findByIdWithLikeNovel(id).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+        size = novelEntity.getLikeNovels().size();
+        likeNovelRepository.deleteByNovelIdAndEmail(id, email);
+        return size - 1;
+    }
+
+    @Transactional
+    public int likeComment(Long id, String email) {
+        if (likeCommentRepository.findLikeComment(id, email).isPresent()) {
+            throw new AlreadyDoingException(ExceptionEnum.ALREADYDOING.ordinal(), "이미 좋아요를 누르셨습니다.", HttpStatus.FORBIDDEN);
+        } else {
+            int size = 0;
             CommentEntity commentEntity = commentRepository.findByIdWithLikeComment(id).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
             size = commentEntity.getLikeComments().size();
             UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
@@ -53,26 +70,7 @@ public class LikeService {
             likeCommentRepository.save(likeCommentEntity);
             commentEntity.addLikeComment(likeCommentEntity);
             userEntity.addLikeComment(likeCommentEntity);
-        } else {
-            throw new IllegalArgumentException();
+            return size + 1;
         }
-        return size + 1;
-    }
-
-    @Transactional
-    public int unlike(Long id, String type, String email) {
-        int size = 0;
-        if (type.equals("novel")) {
-            NovelEntity novelEntity = novelRepository.findByIdWithLikeNovel(id).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
-            size = novelEntity.getLikeNovels().size();
-            likeNovelRepository.deleteByNovelIdAndEmail(id,email);
-        } else if (type.equals("comment")) {
-            CommentEntity commentEntity = commentRepository.findByIdWithLikeComment(id).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
-            size = commentEntity.getLikeComments().size();
-            likeCommentRepository.deleteByCommentIdAndEmail(id, email);
-        } else {
-            throw new IllegalArgumentException();
-        }
-        return size - 1;
     }
 }

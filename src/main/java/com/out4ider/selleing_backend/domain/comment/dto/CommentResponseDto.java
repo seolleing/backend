@@ -11,5 +11,5 @@ public class CommentResponseDto {
     private Long commentId;
     private String content;
     private String nickname;
-    //likecount
+    private int likeCount;
 }

@@ -13,15 +13,21 @@ import java.security.Principal;
 public class LikeController {
     private final LikeService likeService;
 
-    @PostMapping("/{id}")
-    public ResponseEntity<?> likeIt(@PathVariable(name = "id") Long id, @RequestParam(name = "type") String type, Principal principal){
-        int likeCount = likeService.like(id, type, principal.getName());
+    @PostMapping("/novels/{novelId}")
+    public ResponseEntity<?> likeNovel(@PathVariable(name = "novelId") Long id, Principal principal){
+        int likeCount = likeService.likeNovel(id, principal.getName());
         return ResponseEntity.ok().body(likeCount);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> unlikeIt(@PathVariable(name = "id") Long id, @RequestParam(name = "type") String type, Principal principal){
-        int likeCount = likeService.unlike(id, type, principal.getName());
+    @DeleteMapping("/novels/{novelId}")
+    public ResponseEntity<?> unlikeNovel(@PathVariable(name = "novelId") Long id, Principal principal){
+        int likeCount = likeService.unlikeNovel(id, principal.getName());
+        return ResponseEntity.ok().body(likeCount);
+    }
+
+    @PostMapping("/comments/{commentId}")
+    public ResponseEntity<?> likeComment(@PathVariable(name = "commentId") Long id, Principal principal){
+        int likeCount = likeService.likeComment(id, principal.getName());
         return ResponseEntity.ok().body(likeCount);
     }
 }
