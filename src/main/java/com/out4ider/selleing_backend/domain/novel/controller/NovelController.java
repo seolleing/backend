@@ -42,5 +42,9 @@ public class NovelController {
         return ResponseEntity.ok().build();
     }
 
-
+    @GetMapping("/bookmarks")
+    public ResponseEntity<?> getBookmarks(@RequestParam(name="page", required = false, defaultValue = "0") int page, Principal principal){
+        List<NovelResponseDto> novelResponseDtos = novelService.getBookmarks(page, principal.getName());
+        return ResponseEntity.ok().body(novelResponseDtos);
+    }
 }

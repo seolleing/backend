@@ -47,8 +47,16 @@ public class NovelService {
     }
 
     public List<NovelResponseDto> getSome(int page, String orderby) {
-        Pageable pageable = PageRequest.of(page, 10, Sort.by(orderby).descending());
-        return novelRepository.findAll(pageable).getContent().stream().map(NovelEntity::toNovelResponseDto).toList();
+        Pageable pageable = null;
+        List<NovelResponseDto> novelResponseDtos = null;
+        if (orderby.equals("novelId")) {
+            pageable = PageRequest.of(page, 10, Sort.by(orderby).descending());
+            novelResponseDtos= novelRepository.findAll(pageable).getContent().stream().map(NovelEntity::toNovelResponseDto).toList();
+        } else {
+            pageable = PageRequest.of(page, 10);
+            novelResponseDtos = novelRepository.findAllWithLikeOrder(pageable).getContent().stream().map(NovelEntity::toNovelResponseDto).toList();
+        }
+        return novelResponseDtos;
     }
 
     public NovelTotalResponseDto get(Long novelId, String email) {
@@ -62,5 +70,10 @@ public class NovelService {
         NovelEntity novelEntity = novelRepository.findById(novelId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         novelEntity.setReported(true);
         novelRepository.save(novelEntity);
+    }
+
+    public List<NovelResponseDto> getBookmarks(int page, String email) {
+        Pageable pageable = PageRequest.of(page, 10, Sort.by("novelId").descending());
+        return novelRepository.findAllWithLike(pageable, email).getContent().stream().map(NovelEntity::toNovelResponseDto).toList();
     }
 }
