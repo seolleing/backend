@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -35,6 +36,7 @@ public class NovelService {
         NovelEntity novelEntity = NovelEntity.builder()
                 .title(novelRequestDto.getTitle())
                 .startSentence(novelRequestDto.getStartSentence())
+                .likeNovels(new ArrayList<>())
                 .isReported(false)
                 .build();
         novelRepository.save(novelEntity);
