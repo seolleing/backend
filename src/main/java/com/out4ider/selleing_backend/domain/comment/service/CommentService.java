@@ -3,6 +3,7 @@ package com.out4ider.selleing_backend.domain.comment.service;
 import com.out4ider.selleing_backend.domain.comment.dto.CommentRequestDto;
 import com.out4ider.selleing_backend.domain.comment.entity.CommentEntity;
 import com.out4ider.selleing_backend.domain.comment.repository.CommentRepository;
+import com.out4ider.selleing_backend.domain.like.repository.LikeCommentRepository;
 import com.out4ider.selleing_backend.domain.novel.entity.NovelEntity;
 import com.out4ider.selleing_backend.domain.novel.repository.NovelRepository;
 import com.out4ider.selleing_backend.domain.user.entity.UserEntity;
@@ -26,6 +27,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final NovelRepository novelRepository;
     private final UserRepository userRepository;
+    private final LikeCommentRepository likeCommentRepository;
 
     @Transactional
     public Long save(CommentRequestDto commentRequestDto, String email) {
@@ -40,7 +42,7 @@ public class CommentService {
         commentRepository.save(commentEntity);
         return commentEntity.getId();
     }
-
+    @Transactional
     public void update(Long commentId, String content, String name) {
         CommentEntity commentEntity = commentRepository.findByIdWithUser(commentId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         if(commentEntity.getUser().getEmail().equals(name)){
@@ -51,9 +53,11 @@ public class CommentService {
         }
     }
 
+    @Transactional
     public void delete(Long commentId, String name) {
         CommentEntity commentEntity = commentRepository.findByIdWithUser(commentId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         if(commentEntity.getUser().getEmail().equals(name)){
+            likeCommentRepository.deleteLikeComment(commentEntity.getId());
             commentRepository.delete(commentEntity);
         }else{
             throw new NotAuthorizedException(ExceptionEnum.NOTAUTHORIZED.ordinal(), "you dont have authorization", HttpStatus.FORBIDDEN);
