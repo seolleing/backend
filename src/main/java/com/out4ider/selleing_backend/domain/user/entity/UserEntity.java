@@ -1,8 +1,12 @@
 package com.out4ider.selleing_backend.domain.user.entity;
 
+import com.out4ider.selleing_backend.domain.like.entity.LikeCommentEntity;
+import com.out4ider.selleing_backend.domain.like.entity.LikeNovelEntity;
 import com.out4ider.selleing_backend.domain.user.dto.UserResponseDto;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Table(name = "user")
@@ -29,7 +33,21 @@ public class UserEntity {
     @Column(name = "role")
     private String role;
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<LikeNovelEntity> likeNovels;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<LikeCommentEntity> likeComments;
+
     public UserResponseDto toUserResponseDto() {
         return new UserResponseDto(this.userId, this.getNickname());
+    }
+
+    public void addLikeNovel(LikeNovelEntity likeNovelEntity) {
+        this.likeNovels.add(likeNovelEntity);
+    }
+
+    public void addLikeComment(LikeCommentEntity likeCommentEntity) {
+        this.likeComments.add(likeCommentEntity);
     }
 }

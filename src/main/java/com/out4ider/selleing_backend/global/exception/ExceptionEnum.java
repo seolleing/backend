@@ -6,5 +6,6 @@ public enum ExceptionEnum {
     NOTFOUNDELEMENT,
     NOTAUTHORIZED,
     FAILEDLOGIN,
-    UNHANDLED
+    UNHANDLED,
+    ALREADYDOING
 }
