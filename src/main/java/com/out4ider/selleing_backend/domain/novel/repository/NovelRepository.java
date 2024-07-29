@@ -10,8 +10,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface NovelRepository extends JpaRepository<NovelEntity, Long> {
-    @Query("select n from NovelEntity n")
-    Page<NovelEntity> findAll(Pageable pageable);
     @Query("select distinct n from NovelEntity n left join fetch n.likeNovels where n.novelId=?1")
     Optional<NovelEntity> findByIdWithLikeNovel(Long id);
     @Query("select n from NovelEntity n left join n.likeNovels l group by n order by count(l) desc")
