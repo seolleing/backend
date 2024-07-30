@@ -8,8 +8,7 @@ import com.out4ider.selleing_backend.domain.novel.dto.NovelResponseDto;
 import com.out4ider.selleing_backend.domain.novel.dto.NovelTotalResponseDto;
 import com.out4ider.selleing_backend.domain.novel.entity.NovelEntity;
 import com.out4ider.selleing_backend.domain.novel.entity.NovelInfoEntity;
-import com.out4ider.selleing_backend.domain.novel.repository.JDBCTemplateNovelInfoRepository;
-import com.out4ider.selleing_backend.domain.novel.repository.JPANovelInfoRepository;
+import com.out4ider.selleing_backend.domain.novel.repository.NovelInfoRepository;
 import com.out4ider.selleing_backend.domain.novel.repository.NovelRepository;
 import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
 import com.out4ider.selleing_backend.global.exception.kind.NotFoundElementException;
@@ -28,9 +27,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NovelService {
     private final NovelRepository novelRepository;
-    private final JDBCTemplateNovelInfoRepository jdbcTemplateNovelInfoRepository;
     private final CommentRepository commentRepository;
-    private final JPANovelInfoRepository jpaNovelInfoRepository;
+    private final NovelInfoRepository novelInfoRepository;
     private final LikeNovelRepository likeNovelRepository;
 
     @Transactional
@@ -42,7 +40,7 @@ public class NovelService {
                 .isReported(false)
                 .build();
         novelRepository.save(novelEntity);
-        jdbcTemplateNovelInfoRepository.batchInsert(novelRequestDto.getNovelInfoRequestDtos(), novelEntity.getNovelId());
+        novelInfoRepository.batchInsert(novelRequestDto.getNovelInfoRequestDtos(), novelEntity.getNovelId());
         return novelEntity.getNovelId();
     }
 
@@ -61,7 +59,7 @@ public class NovelService {
 
     public NovelTotalResponseDto get(Long novelId, String email) {
         boolean isLiked = likeNovelRepository.findLikeNovel(novelId, email).isPresent();
-        return new NovelTotalResponseDto(isLiked, jpaNovelInfoRepository.findByNovelId(novelId).stream().map(NovelInfoEntity::toNovelInfoResponseDto).toList(),
+        return new NovelTotalResponseDto(isLiked, novelInfoRepository.findByNovelId(novelId).stream().map(NovelInfoEntity::toNovelInfoResponseDto).toList(),
                 commentRepository.findByNovelId(novelId).stream().map(CommentEntity::toCommentResponseDto).toList());
     }
 
