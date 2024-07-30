@@ -51,10 +51,10 @@ public class NovelService {
         List<NovelResponseDto> novelResponseDtos = null;
         if (orderby.equals("novelId")) {
             pageable = PageRequest.of(page, 10, Sort.by(orderby).descending());
-            novelResponseDtos= novelRepository.findAll(pageable).getContent().stream().map(NovelEntity::toNovelResponseDto).toList();
+            novelResponseDtos= novelRepository.findAllWithNovelId(pageable).stream().map(NovelEntity::toNovelResponseDto).toList();
         } else {
             pageable = PageRequest.of(page, 10);
-            novelResponseDtos = novelRepository.findAllWithLikeOrder(pageable).getContent().stream().map(NovelEntity::toNovelResponseDto).toList();
+            novelResponseDtos = novelRepository.findAllWithLikeNovel(pageable).stream().map(NovelEntity::toNovelResponseDto).toList();
         }
         return novelResponseDtos;
     }
@@ -74,6 +74,6 @@ public class NovelService {
 
     public List<NovelResponseDto> getBookmarks(int page, String email) {
         Pageable pageable = PageRequest.of(page, 10, Sort.by("novelId").descending());
-        return novelRepository.findAllWithLike(pageable, email).getContent().stream().map(NovelEntity::toNovelResponseDto).toList();
+        return novelRepository.findAllWithLike(pageable, email).stream().map(NovelEntity::toNovelResponseDto).toList();
     }
 }

@@ -4,7 +4,6 @@ import com.out4ider.selleing_backend.domain.gameroom.dto.GameRoomInquiryResponse
 import com.out4ider.selleing_backend.domain.gameroom.dto.GameRoomRequestDto;
 import com.out4ider.selleing_backend.domain.gameroom.dto.GameRoomSaveResponseDto;
 import com.out4ider.selleing_backend.domain.gameroom.service.GameRoomService;
-import com.out4ider.selleing_backend.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +16,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GameRoomController {
     private final GameRoomService gameRoomService;
-    private final UserRepository userRepository;
 
     @PostMapping
     public ResponseEntity<?> saveGameRoom(@RequestBody GameRoomRequestDto gameRoomRequestDto, Principal principal) {

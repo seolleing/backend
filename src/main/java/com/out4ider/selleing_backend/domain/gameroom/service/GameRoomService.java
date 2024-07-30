@@ -49,7 +49,7 @@ public class GameRoomService {
 
     public List<GameRoomInquiryResponseDto> getSome(int page) {
         Pageable pageable = PageRequest.of(page, 10, Sort.by("id").descending());
-        return gameRoomRepository.findAllByIsStarted(pageable).getContent().stream().map((gameRoomEntity) -> {
+        return gameRoomRepository.findAllByIsStarted(pageable).stream().map((gameRoomEntity) -> {
             int currentHeadCount = getCurrentHeadCount(gameRoomEntity.getId());;
             return gameRoomEntity.toGameRoomInquiryResponseDto(currentHeadCount);
         }).toList();
