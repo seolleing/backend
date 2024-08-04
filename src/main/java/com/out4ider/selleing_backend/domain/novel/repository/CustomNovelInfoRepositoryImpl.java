@@ -30,7 +30,7 @@ public class CustomNovelInfoRepositoryImpl implements CustomNovelInfoRepository 
 
             @Override
             public int getBatchSize() {
-                return novelInfoRequestDtos.size();
+                return 8;
             }
         });
     }

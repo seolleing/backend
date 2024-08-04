@@ -23,13 +23,6 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<?, ?> redisTemplate() {
-        RedisTemplate<byte[], byte[]> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(redisConnectionFactory());
-        return redisTemplate;
-    }
-
-    @Bean
     public RedisTemplate<String, Integer> StringIntegerredisTemplate() {
         RedisTemplate<String, Integer> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory());

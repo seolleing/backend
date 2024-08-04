@@ -15,19 +15,19 @@ public class LikeController {
 
     @PostMapping("/novels/{novelId}")
     public ResponseEntity<?> likeNovel(@PathVariable(name = "novelId") Long id, Principal principal){
-        int likeCount = likeService.likeNovel(id, principal.getName());
-        return ResponseEntity.ok().body(likeCount);
+        likeService.likeNovel(id, principal.getName());
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/novels/{novelId}")
     public ResponseEntity<?> unlikeNovel(@PathVariable(name = "novelId") Long id, Principal principal){
-        int likeCount = likeService.unlikeNovel(id, principal.getName());
-        return ResponseEntity.ok().body(likeCount);
+        likeService.unlikeNovel(id, principal.getName());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/comments/{commentId}")
     public ResponseEntity<?> likeComment(@PathVariable(name = "commentId") Long id, Principal principal){
-        int likeCount = likeService.likeComment(id, principal.getName());
-        return ResponseEntity.ok().body(likeCount);
+        likeService.likeComment(id, principal.getName());
+        return ResponseEntity.ok().build();
     }
 }
