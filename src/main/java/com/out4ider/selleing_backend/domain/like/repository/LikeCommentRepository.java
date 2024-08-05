@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 
 public interface LikeCommentRepository extends JpaRepository<LikeCommentEntity, Long>, CustomLikeCommentRepository {
-    @Query("select l from LikeCommentEntity l where l.comment.id=?1 and l.user.email=?2")
-    Optional<LikeCommentEntity> findLikeComment(Long commentId, String email);
+    @Query("select l from LikeCommentEntity l where l.comment.id=?1 and l.user.userId=?2")
+    Optional<LikeCommentEntity> findLikeComment(Long commentId, Long userId);
 
     @Modifying
     @Query("delete from LikeCommentEntity l where l.comment.id=?1")

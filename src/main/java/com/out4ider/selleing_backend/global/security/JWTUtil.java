@@ -19,8 +19,8 @@ public class JWTUtil {
         this.secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
         this.redisTemplate = redisTemplate;
     }
-    public String getEmail(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("email", String.class);
+    public Long getUserId(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("userId", Long.class);
     }
 
     public String getRole(String token) {
@@ -36,10 +36,10 @@ public class JWTUtil {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
     }
 
-    public String createToken(String category,String email, String role, Long expiredMs) {
+    public String createToken(String category, Long userId, String role, Long expiredMs) {
         return Jwts.builder()
                 .claim("category", category)
-                .claim("email", email)
+                .claim("userId", userId)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))
@@ -47,11 +47,11 @@ public class JWTUtil {
                 .compact();
     }
 
-    public void deleteToken(String email) {
-        redisTemplate.delete(email);
-    }
+//    public void deleteToken(Long userId) {
+//        redisTemplate.delete(userId);
+//    }
 
-    public void putToken(String email, String token) {
-        redisTemplate.opsForValue().set(email, token);
+    public void putToken(String userId, String token) {
+        redisTemplate.opsForValue().set(userId, token);
     }
 }

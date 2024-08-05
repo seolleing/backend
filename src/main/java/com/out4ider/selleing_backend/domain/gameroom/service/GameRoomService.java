@@ -31,8 +31,8 @@ public class GameRoomService {
     private final RedisTemplate<String, Integer> stringIntegerRedisTemplate;
 
     @Transactional
-    public GameRoomSaveResponseDto save(GameRoomRequestDto gameRoomRequestDto, String email) {
-        UserEntity userEntitiy = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+    public GameRoomSaveResponseDto save(GameRoomRequestDto gameRoomRequestDto, Long userId) {
+        UserEntity userEntitiy = userRepository.findById(userId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         GameRoomEntity gameRoomEntity = GameRoomEntity.builder()
                 .title(gameRoomRequestDto.getTitle())
                 .maxHeadCount(gameRoomRequestDto.getMaxHeadCount())
@@ -56,9 +56,9 @@ public class GameRoomService {
     }
 
     @Transactional
-    public void delete(Long roomId, String email) {
+    public void delete(Long roomId, Long userId) {
         GameRoomEntity gameRoomEntity = gameRoomRepository.findByIdWithUser(roomId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
-        if (gameRoomEntity.getUser().getEmail().equals(email)) {
+        if (gameRoomEntity.getUser().getUserId().equals(userId)) {
             gameRoomRepository.delete(gameRoomEntity);
             stringIntegerRedisTemplate.delete("room" + gameRoomEntity.getId());
         } else {
@@ -90,9 +90,9 @@ public class GameRoomService {
         stringIntegerRedisTemplate.opsForValue().set("room" + roomId, currentHeadCount - 1);
     }
 
-    public void update(Long roomId, GameRoomRequestDto gameRoomRequestDto, String email) {
+    public void update(Long roomId, GameRoomRequestDto gameRoomRequestDto, Long userId) {
         GameRoomEntity gameRoomEntity = gameRoomRepository.findById(roomId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "방이 꽉찼습니다.", HttpStatus.LOCKED));
-        if (gameRoomEntity.getUser().getEmail().equals(email)) {
+        if (gameRoomEntity.getUser().getUserId().equals(userId)) {
             gameRoomEntity.updateGameRoomEntity(gameRoomRequestDto);
         } else {
             throw new NotAuthorizedException(ExceptionEnum.NOTAUTHORIZED.ordinal(), "you dont have authorization", HttpStatus.FORBIDDEN);

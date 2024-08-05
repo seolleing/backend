@@ -2,12 +2,12 @@ package com.out4ider.selleing_backend.domain.user.controller;
 
 import com.out4ider.selleing_backend.domain.user.dto.UserRequestDto;
 import com.out4ider.selleing_backend.domain.user.service.UserService;
+import com.out4ider.selleing_backend.global.security.SimpleCustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/users")
@@ -29,8 +29,8 @@ public class UserController {
     }
 
     @PatchMapping
-    public ResponseEntity<?> updateUser(Principal principal,@RequestParam(name = "nickname") String nickname) {
-        userService.update(principal.getName(), nickname);
+    public ResponseEntity<?> updateUser(@AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails, @RequestParam(name = "nickname") String nickname) {
+        userService.update(simpleCustomUserDetails.getUserId(), nickname);
         return ResponseEntity.ok().body(nickname);
     }
     

@@ -55,9 +55,9 @@ public class JWTFilter extends OncePerRequestFilter {
             throw new InvalidLoginTokenException(ExceptionEnum.INVALIDTOKEN.ordinal(), "This is Invalid Token", HttpStatus.UNAUTHORIZED);
         }
 
-        String email = jwtUtil.getEmail(accessToken);
+        Long userId = jwtUtil.getUserId(accessToken);
         String role = jwtUtil.getRole(accessToken);
-        SimpleCustomUserDetails simpleCustomUserDetails = new SimpleCustomUserDetails(email, role);
+        SimpleCustomUserDetails simpleCustomUserDetails = new SimpleCustomUserDetails(userId, role);
         Authentication authentication = new UsernamePasswordAuthenticationToken(simpleCustomUserDetails, null, simpleCustomUserDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
         filterChain.doFilter(request, response);

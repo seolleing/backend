@@ -23,8 +23,16 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, Integer> StringIntegerredisTemplate() {
+    public RedisTemplate<String, Integer> StringIntegerRedisTemplate() {
         RedisTemplate<String, Integer> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory());
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        return redisTemplate;
+    }
+
+    @Bean
+    public RedisTemplate<String, Long> StringLongRedisTemplate() {
+        RedisTemplate<String, Long> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory());
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         return redisTemplate;

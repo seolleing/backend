@@ -47,10 +47,10 @@ public class ReissueTokenFilter extends OncePerRequestFilter {
                         throw new InvalidLoginTokenException(ExceptionEnum.INVALIDTOKEN.ordinal(), "This is Invalid Token", HttpStatus.UNAUTHORIZED);
                     }
 
-                    String email = jwtUtil.getEmail(refresh);
+                    Long userId = jwtUtil.getUserId(refresh);
                     String role = jwtUtil.getRole(refresh);
 
-                    String newAccess = jwtUtil.createToken("access", email, role, 600000L);
+                    String newAccess = jwtUtil.createToken("access", userId, role, 600000L);
                     response.setHeader("Authorization", newAccess);
                     response.setStatus(HttpServletResponse.SC_OK);
                     return;

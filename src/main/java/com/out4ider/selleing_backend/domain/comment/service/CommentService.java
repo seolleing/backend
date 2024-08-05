@@ -30,8 +30,8 @@ public class CommentService {
     private final LikeCommentRepository likeCommentRepository;
 
     @Transactional
-    public Long save(CommentRequestDto commentRequestDto, String email) {
-        UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+    public Long save(CommentRequestDto commentRequestDto, Long userId) {
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         NovelEntity novelEntity = novelRepository.findById(commentRequestDto.getNovelId()).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         CommentEntity commentEntity = CommentEntity.builder()
                 .novel(novelEntity)
@@ -43,9 +43,9 @@ public class CommentService {
         return commentEntity.getId();
     }
     @Transactional
-    public void update(Long commentId, String content, String name) {
+    public void update(Long commentId, String content, Long userId) {
         CommentEntity commentEntity = commentRepository.findByIdWithUser(commentId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
-        if(commentEntity.getUser().getEmail().equals(name)){
+        if(commentEntity.getUser().getUserId().equals(userId)){
             commentEntity.setContent(content);
             commentRepository.save(commentEntity);
         }else{
@@ -54,9 +54,9 @@ public class CommentService {
     }
 
     @Transactional
-    public void delete(Long commentId, String name) {
+    public void delete(Long commentId, Long userId) {
         CommentEntity commentEntity = commentRepository.findByIdWithUser(commentId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
-        if(commentEntity.getUser().getEmail().equals(name)){
+        if(commentEntity.getUser().getUserId().equals(userId)){
             likeCommentRepository.deleteLikeComment(commentEntity.getId());
             commentRepository.delete(commentEntity);
         }else{

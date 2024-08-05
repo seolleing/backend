@@ -35,7 +35,7 @@ public class NovelEntity {
     private List<LikeNovelEntity> likeNovels;
 
 
-    public NovelResponseDto toNovelResponseDto(int newLikeCount) {
+    public NovelResponseDto toNovelResponseDto(long newLikeCount) {
         return NovelResponseDto.builder()
                 .novelId(this.novelId)
                 .title(this.title)
