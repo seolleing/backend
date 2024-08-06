@@ -1,8 +1,9 @@
 package com.out4ider.selleing_backend.domain.like.repository;
 
-import java.util.Map;
-import java.util.Set;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.List;
 
 public interface CustomLikeNovelRepository {
-    void batchInsert(Set<Long> novelIds, Map<Long, Set<String>> novelIdWithEmails);
+    void batchInsert(List<Pair<Long,Long>> pairList);
 }

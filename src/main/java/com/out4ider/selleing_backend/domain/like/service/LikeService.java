@@ -8,8 +8,14 @@ import com.out4ider.selleing_backend.global.service.RedisService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,60 +24,79 @@ public class LikeService {
     private final LikeCommentRepository likeCommentRepository;
     private final RedisService redisService;
     private final LikeNovelRepository likeNovelRepository;
+    @Value("${spring.batchSize}")
+    private int batchSize;
 
     @Transactional
     public void likeNovel(Long novelId, Long userId) {
-        if (redisService.checkDeleteLikeNovel(novelId, userId)) {
-            redisService.removeDeleteLikeNovelValue(novelId, userId);
+        if (redisService.checkValueExisting("deleteLikeNovel:"+novelId, userId)) {
+            redisService.removeValue("deleteLikeNovel:"+novelId, userId);
         } else {
-            redisService.addNewLikeNovel(novelId, userId);
+            redisService.addValue("newLikeNovel:"+novelId, userId);
         }
     }
 
     @Transactional
     public void unlikeNovel(Long novelId, Long userId) {
-        if (redisService.checkNewLikeNovel(novelId, userId)) {
-            redisService.removeNewLikeNovelValue(novelId, userId);
+        if (redisService.checkValueExisting("newLikeNovel:"+novelId, userId)) {
+            redisService.removeValue("newLikeNovel:"+novelId, userId);
         }
-        redisService.addDeleteLikeNovel(novelId, userId);
+        redisService.addValue("deleteLikeNovel:"+novelId, userId);
     }
 
     @Transactional
     public void likeComment(Long id, Long userId) {
-        if (redisService.checkNewLikeComment(id, userId)
+        if (redisService.checkValueExisting("newLikeComment:"+id, userId)
                 || likeCommentRepository.findLikeComment(id, userId).isPresent()) {
             throw new AlreadyDoingException(ExceptionEnum.ALREADYDOING.ordinal(), "이미 좋아요를 누르셨습니다.", HttpStatus.FORBIDDEN);
         } else {
-            redisService.addNewLikeComment(id, userId);
+            redisService.addValue("newLikeComment:"+id, userId);
         }
     }
-//    @Scheduled(fixedDelay = 3000000, initialDelay = 10000)
-//    @Transactional
-//    public void likeNovelCacheToDB() {
-//        Set<String> newNovelIds = stringRedisTemplate.keys("newLikeNovel:*");
-//        Map<Long, Set<String>> novelIdWithEmails = new HashMap<>();
-//        if (newNovelIds != null) {
-//            Set<Long> novelIds = newNovelIds.stream().map(novelId -> Long.valueOf(novelId.split(":")[1])).collect(Collectors.toSet());
-//            for(Long novelId : novelIds) {
-//                Set<String> emails = stringRedisTemplate.opsForSet().members("newLikeNovel:" + novelId);
-//                novelIdWithEmails.put(novelId, emails);
-//            }
-//            likeNovelRepository.batchInsert(novelIds, novelIdWithEmails);
-//        }
-//    }
-//
-//    @Scheduled(fixedDelay = 3300000, initialDelay = 15000)
-//    @Transactional
-//    public void likeCommentCacheToDB() {
-//        Set<String> newCommentIds = stringRedisTemplate.keys("newLikeComment:*");
-//        Map<Long, Set<String>> commentIdWithEmails = new HashMap<>();
-//        if (newCommentIds != null) {
-//            Set<Long> commentIds = newCommentIds.stream().map(novelId -> Long.valueOf(novelId.split(":")[1])).collect(Collectors.toSet());
-//            for (Long commentId : commentIds) {
-//                Set<String> emails = stringRedisTemplate.opsForSet().members("newLikeComment:" + commentId);
-//                commentIdWithEmails.put(commentId, emails);
-//            }
-//            likeCommentRepository.batchInsert(commentIds, commentIdWithEmails);
-//        }
-//    }
+
+    @Scheduled(fixedDelay = 3000000, initialDelay = 3000000)
+    @Transactional
+    public void likeNovelCacheToDB() {
+        Set<String> newNovelIds = redisService.getAllKey("newLikeNovel:*");
+        List<Pair<Long,Long>> novelIdAndUserIdList = new ArrayList<>(100);
+        if (newNovelIds != null) {
+            Set<Long> novelIds = newNovelIds.stream().map(novelId -> Long.valueOf(novelId.split(":")[1])).collect(Collectors.toSet());
+            for (Long novelId : novelIds) {
+                Set<Long> userIds = redisService.getAllValue("newLikeNovel:" + novelId);
+                for(Long userId : userIds){
+                    novelIdAndUserIdList.add(Pair.of(novelId, userId));
+                    if(novelIdAndUserIdList.size()==batchSize){
+                        likeNovelRepository.batchInsert(novelIdAndUserIdList);
+                    }
+                }
+            }
+            if(!novelIdAndUserIdList.isEmpty()) {
+                likeNovelRepository.batchInsert(novelIdAndUserIdList);
+            }
+            redisService.removeAllNewKey(newNovelIds);
+        }
+    }
+
+    @Scheduled(fixedDelay = 3300000, initialDelay = 3300000)
+    @Transactional
+    public void likeCommentCacheToDB() {
+        Set<String> newCommentIds = redisService.getAllKey("newLikeComment:*");
+        List<Pair<Long, Long>> commentIdAndUserIdList = new ArrayList<>(100);
+        if (newCommentIds != null) {
+            Set<Long> commentIds = newCommentIds.stream().map(novelId -> Long.valueOf(novelId.split(":")[1])).collect(Collectors.toSet());
+            for (Long commentId : commentIds) {
+                Set<Long> userIds = redisService.getAllValue("newLikeComment:"+commentId);
+                for (Long userId : userIds) {
+                    commentIdAndUserIdList.add(Pair.of(commentId, userId));
+                    if (commentIdAndUserIdList.size() == batchSize) {
+                        likeCommentRepository.batchInsert(commentIdAndUserIdList);
+                    }
+                }
+            }
+            if(!commentIdAndUserIdList.isEmpty()){
+                likeCommentRepository.batchInsert(commentIdAndUserIdList);
+            }
+            redisService.removeAllNewKey(newCommentIds);
+        }
+    }
 }
