@@ -12,9 +12,10 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class JDBCTemplateNovelInfoRepository{
+public class CustomNovelInfoRepositoryImpl implements CustomNovelInfoRepository {
     private final JdbcTemplate jdbcTemplate;
 
+    @Override
     public void batchInsert(List<NovelInfoRequestDto> novelInfoRequestDtos, Long novelId) {
         String sql = "INSERT INTO novel_info(content, novel_id, user_id) VALUES(?,?,?)";
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
