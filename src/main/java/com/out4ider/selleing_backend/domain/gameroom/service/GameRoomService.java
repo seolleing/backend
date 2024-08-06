@@ -10,25 +10,27 @@ import com.out4ider.selleing_backend.domain.user.repository.UserRepository;
 import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
 import com.out4ider.selleing_backend.global.exception.kind.NotAuthorizedException;
 import com.out4ider.selleing_backend.global.exception.kind.NotFoundElementException;
+import com.out4ider.selleing_backend.global.service.RedisService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class GameRoomService {
+    private static final Logger log = LoggerFactory.getLogger(GameRoomService.class);
     private final GameRoomRepository gameRoomRepository;
     private final UserRepository userRepository;
-    private final RedisTemplate<String, Integer> stringIntegerRedisTemplate;
+    private final RedisService redisService;
 
     @Transactional
     public GameRoomSaveResponseDto save(GameRoomRequestDto gameRoomRequestDto, Long userId) {
@@ -43,14 +45,14 @@ public class GameRoomService {
                 .code(UUID.randomUUID().toString())
                 .build();
         gameRoomRepository.save(gameRoomEntity);
-        stringIntegerRedisTemplate.opsForValue().set("room" + gameRoomEntity.getId(), 1);
+        redisService.setGameRoomInitialHeadCount(gameRoomEntity.getId());
         return gameRoomEntity.toGameRoomSaveResponseDto();
     }
 
     public List<GameRoomInquiryResponseDto> getSome(int page) {
         Pageable pageable = PageRequest.of(page, 10, Sort.by("id").descending());
         return gameRoomRepository.findAllByIsStarted(pageable).stream().map((gameRoomEntity) -> {
-            int currentHeadCount = getCurrentHeadCount(gameRoomEntity.getId());;
+            byte currentHeadCount = redisService.getGameRoomHeadCount(gameRoomEntity.getId());
             return gameRoomEntity.toGameRoomInquiryResponseDto(currentHeadCount);
         }).toList();
     }
@@ -60,7 +62,7 @@ public class GameRoomService {
         GameRoomEntity gameRoomEntity = gameRoomRepository.findByIdWithUser(roomId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         if (gameRoomEntity.getUser().getUserId().equals(userId)) {
             gameRoomRepository.delete(gameRoomEntity);
-            stringIntegerRedisTemplate.delete("room" + gameRoomEntity.getId());
+            redisService.deleteGameRoomHeadCount(gameRoomEntity.getId());
         } else {
             throw new NotAuthorizedException(ExceptionEnum.NOTAUTHORIZED.ordinal(), "you dont have authorization", HttpStatus.FORBIDDEN);
         }
@@ -86,10 +88,10 @@ public class GameRoomService {
 
     @Transactional
     public void leave(Long roomId) {
-        int currentHeadCount = getCurrentHeadCount(roomId);
-        stringIntegerRedisTemplate.opsForValue().set("room" + roomId, currentHeadCount - 1);
+        redisService.subGameRoomHeadCount(roomId);
     }
 
+    @Transactional
     public void update(Long roomId, GameRoomRequestDto gameRoomRequestDto, Long userId) {
         GameRoomEntity gameRoomEntity = gameRoomRepository.findById(roomId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "방이 꽉찼습니다.", HttpStatus.LOCKED));
         if (gameRoomEntity.getUser().getUserId().equals(userId)) {
@@ -100,18 +102,15 @@ public class GameRoomService {
     }
 
     private GameRoomInquiryResponseDto joinRoom(GameRoomEntity gameRoomEntity) {
-        int currentHeadCount = getCurrentHeadCount(gameRoomEntity.getId());
+        byte currentHeadCount = redisService.getGameRoomHeadCount(gameRoomEntity.getId());
         if (currentHeadCount >= gameRoomEntity.getMaxHeadCount()) {
             throw new RuntimeException("꽉찼당");
         }
         if (gameRoomEntity.isStarted()) {
             throw new RuntimeException("이미 시작했당");
         }
-        stringIntegerRedisTemplate.opsForValue().set("room" + gameRoomEntity.getId(), currentHeadCount + 1);
-        return gameRoomEntity.toGameRoomInquiryResponseDto(currentHeadCount + 1);
+        byte newHeadCount = redisService.addGameRoomHeadCount(gameRoomEntity.getId());
+        return gameRoomEntity.toGameRoomInquiryResponseDto(newHeadCount);
     }
 
-    private int getCurrentHeadCount(Long roomId){
-        return Objects.requireNonNull(stringIntegerRedisTemplate.opsForValue().get("room" + roomId), "다시 시도 가즈아");
-    }
 }

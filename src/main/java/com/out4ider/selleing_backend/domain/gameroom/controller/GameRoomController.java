@@ -31,7 +31,7 @@ public class GameRoomController {
     }
 
     @DeleteMapping("/{roomId}")
-    public ResponseEntity<?> deleteGameRoom(@PathVariable Long roomId, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
+    public ResponseEntity<?> deleteGameRoom(@PathVariable(name = "roomId") Long roomId, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
         gameRoomService.delete(roomId, simpleCustomUserDetails.getUserId());
         return ResponseEntity.ok().build();
     }

@@ -30,7 +30,7 @@ public class GameRoomEntity {
     private String title;
 
     @Column(name = "max_head_count")
-    private int maxHeadCount;
+    private byte maxHeadCount;
 
     @Column(name = "game_room_password")
     private String password;
@@ -51,7 +51,7 @@ public class GameRoomEntity {
                 .build();
     }
 
-    public GameRoomInquiryResponseDto toGameRoomInquiryResponseDto(int currentHeadCount) {
+    public GameRoomInquiryResponseDto toGameRoomInquiryResponseDto(byte currentHeadCount) {
         return GameRoomInquiryResponseDto.builder()
                 .currentHeadCount(currentHeadCount)
                 .maxHeadCount(this.maxHeadCount)

@@ -11,6 +11,6 @@ public class GameRoomInquiryResponseDto {
     private String title;
     private String startSentence;
     private Long roomId;
-    private int maxHeadCount;
-    private int currentHeadCount;
+    private byte maxHeadCount;
+    private byte currentHeadCount;
 }

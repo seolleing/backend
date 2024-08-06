@@ -12,21 +12,18 @@ import com.out4ider.selleing_backend.domain.novel.repository.NovelInfoRepository
 import com.out4ider.selleing_backend.domain.novel.repository.NovelRepository;
 import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
 import com.out4ider.selleing_backend.global.exception.kind.NotFoundElementException;
+import com.out4ider.selleing_backend.global.service.RedisService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SetOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -35,8 +32,7 @@ public class NovelService {
     private final CommentRepository commentRepository;
     private final NovelInfoRepository novelInfoRepository;
     private final LikeNovelRepository likeNovelRepository;
-    private final RedisTemplate<String,Long> stringLongRedisTemplate;
-    private final Duration expiredTime = Duration.ofHours(2);
+    private final RedisService redisService;
 
     @Transactional
     public Long save(NovelRequestDto novelRequestDto) {
@@ -57,14 +53,14 @@ public class NovelService {
         if (orderby.equals("novelId")) {
             pageable = PageRequest.of(page, 10, Sort.by(orderby).descending());
             novelResponseDtos = novelRepository.findAllWithNovelId(pageable).stream().map(novelEntity -> {
-                Long newLikeCount = stringLongRedisTemplate.opsForSet().size("newLikeNovel:" + novelEntity.getNovelId());
-                return novelEntity.toNovelResponseDto(newLikeCount == null ? 0 : newLikeCount.intValue());
+                int newLikeCount = redisService.getSizeNewLikeNovel(novelEntity.getNovelId());
+                return novelEntity.toNovelResponseDto(newLikeCount);
             }).toList();
         } else {
             pageable = PageRequest.of(page, 10);
             novelResponseDtos = novelRepository.findAllWithLikeNovel(pageable).stream().map(novelEntity -> {
-                Long newLikeCount = stringLongRedisTemplate.opsForSet().size("newLikeNovel:" + novelEntity.getNovelId());
-                return novelEntity.toNovelResponseDto(newLikeCount == null ? 0 : newLikeCount.intValue());
+                int newLikeCount = redisService.getSizeNewLikeNovel(novelEntity.getNovelId());
+                return novelEntity.toNovelResponseDto(newLikeCount);
             }).toList();
         }
         return novelResponseDtos;
@@ -72,25 +68,22 @@ public class NovelService {
 
     @Async
     public NovelTotalResponseDto get(Long novelId, Long userId) {
-        boolean isLiked=false;
+        boolean isLiked = false;
         int likeCount = 0;
-        SetOperations<String, Long> setOperations = stringLongRedisTemplate.opsForSet();
-        if (!Boolean.TRUE.equals(stringLongRedisTemplate.hasKey("oldLikeNovel:" + novelId))) {
+        if (redisService.alreadyHasOldLikeNovelKey(novelId)) {
             List<LikeNovelEntity> likeNovelEntities = likeNovelRepository.findLikeNovel(novelId);
             List<Long> userIds = likeNovelEntities.stream().map(likeNovelEntity -> likeNovelEntity.getUser().getUserId()).toList();
             isLiked = userIds.contains(userId);
             likeCount = likeNovelEntities.size();
-            setOperations.add("oldLikeNovel:" + novelId, userIds.toArray(new Long[0]));
-            stringLongRedisTemplate.expire("oldLikeNovel:"+novelId, expiredTime);
-
-        }else{
-            isLiked = Boolean.TRUE.equals(setOperations.isMember("oldLikeNovel:" + novelId, userId));
-            likeCount= Objects.requireNonNull(setOperations.size("oldLikeNovel:" + novelId)).intValue();
+            redisService.addOldLikeNovel(novelId,userIds.toArray(new Long[0]));
+        } else {
+            isLiked = redisService.checkUsersLike(novelId,userId);
+            likeCount = redisService.getSizeOldLikeNovel(novelId);
         }
-        return new NovelTotalResponseDto(isLiked, likeCount, novelInfoRepository.findByNovelId(novelId).stream().map(NovelInfoEntity::toNovelInfoResponseDto).toList(),
+        return new NovelTotalResponseDto(isLiked, likeCount+redisService.getSizeNewLikeNovel(novelId), novelInfoRepository.findByNovelId(novelId).stream().map(NovelInfoEntity::toNovelInfoResponseDto).toList(),
                 commentRepository.findByNovelId(novelId).stream().map(commentEntity -> {
-                    Long newLikeCount = stringLongRedisTemplate.opsForSet().size("newLikeComment:" + commentEntity.getId());
-                    return commentEntity.toCommentResponseDto(newLikeCount == null ? 0 : newLikeCount.intValue());
+                    int newLikeCount = redisService.getSizeNewLikeComment(commentEntity.getId());
+                    return commentEntity.toCommentResponseDto(newLikeCount);
                 }).toList());
     }
 
@@ -101,11 +94,11 @@ public class NovelService {
         novelRepository.save(novelEntity);
     }
 
-    public List<NovelResponseDto> getBookmarks(int page, String email) {
-        Pageable pageable = PageRequest.of(page, 10, Sort.by("novelId").descending());
-        return novelRepository.findAllWithLike(pageable, email).stream().map(novelEntity -> {
-            Long newLikeCount = stringLongRedisTemplate.opsForSet().size("newLikeNovel:" + novelEntity.getNovelId());
-            return novelEntity.toNovelResponseDto(newLikeCount == null ? 0 : newLikeCount.intValue());
-        }).toList();
-    }
+//    public List<NovelResponseDto> getBookmarks(int page, String email) {
+//        Pageable pageable = PageRequest.of(page, 10, Sort.by("novelId").descending());
+//        return novelRepository.findAllWithLike(pageable, email).stream().map(novelEntity -> {
+//            Long newLikeCount = stringLongRedisTemplate.opsForSet().size("newLikeNovel:" + novelEntity.getNovelId());
+//            return novelEntity.toNovelResponseDto(newLikeCount == null ? 0 : newLikeCount.intValue());
+//        }).toList();
+//    }
 }
