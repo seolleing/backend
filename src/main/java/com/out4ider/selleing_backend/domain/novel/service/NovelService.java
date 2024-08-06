@@ -53,13 +53,13 @@ public class NovelService {
         if (orderby.equals("novelId")) {
             pageable = PageRequest.of(page, 10, Sort.by(orderby).descending());
             novelResponseDtos = novelRepository.findAllWithNovelId(pageable).stream().map(novelEntity -> {
-                int newLikeCount = redisService.getSizeNewLikeNovel(novelEntity.getNovelId());
+                int newLikeCount = redisService.getSize("newLikeNovel:"+novelEntity.getNovelId());
                 return novelEntity.toNovelResponseDto(newLikeCount);
             }).toList();
         } else {
             pageable = PageRequest.of(page, 10);
             novelResponseDtos = novelRepository.findAllWithLikeNovel(pageable).stream().map(novelEntity -> {
-                int newLikeCount = redisService.getSizeNewLikeNovel(novelEntity.getNovelId());
+                int newLikeCount = redisService.getSize("newLikeNovel:"+novelEntity.getNovelId());
                 return novelEntity.toNovelResponseDto(newLikeCount);
             }).toList();
         }
@@ -78,11 +78,11 @@ public class NovelService {
             redisService.addOldLikeNovel(novelId,userIds.toArray(new Long[0]));
         } else {
             isLiked = redisService.checkUsersLike(novelId,userId);
-            likeCount = redisService.getSizeOldLikeNovel(novelId);
+            likeCount = redisService.getSize("oldLikeNovel:"+novelId);
         }
-        return new NovelTotalResponseDto(isLiked, likeCount+redisService.getSizeNewLikeNovel(novelId), novelInfoRepository.findByNovelId(novelId).stream().map(NovelInfoEntity::toNovelInfoResponseDto).toList(),
+        return new NovelTotalResponseDto(isLiked, likeCount+redisService.getSize("newLikeNovel:"+novelId), novelInfoRepository.findByNovelId(novelId).stream().map(NovelInfoEntity::toNovelInfoResponseDto).toList(),
                 commentRepository.findByNovelId(novelId).stream().map(commentEntity -> {
-                    int newLikeCount = redisService.getSizeNewLikeComment(commentEntity.getId());
+                    int newLikeCount = redisService.getSize("newLikeComment:"+commentEntity.getId());
                     return commentEntity.toCommentResponseDto(newLikeCount);
                 }).toList());
     }

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -14,48 +15,38 @@ public class RedisService {
     private final RedisTemplate<String, Long> stringLongRedisTemplate;
     private final Duration expiredTime = Duration.ofHours(2);
 
+    //schedule redis service
+    public void removeAllNewKey(Set<String> keyNames){
+        stringLongRedisTemplate.delete(keyNames);
+    }
+
+    public Set<String> getAllKey(String keyName){
+        return stringLongRedisTemplate.keys(keyName);
+    }
+
+    public Set<Long> getAllValue(String keyName){
+        return stringLongRedisTemplate.opsForSet().members(keyName);
+    }
+
+
     //like redis service
-    public boolean checkDeleteLikeNovel(Long novelId, Long userId){
-        return Boolean.TRUE.equals(stringLongRedisTemplate.opsForSet().isMember("deleteLikeNovel:" + novelId, userId));
+    public boolean checkValueExisting(String keyName, Long userId){
+        return Boolean.TRUE.equals(stringLongRedisTemplate.opsForSet().isMember(keyName, userId));
     }
 
-    public void removeDeleteLikeNovelValue(Long novelId, Long userId){
-        stringLongRedisTemplate.opsForSet().remove("deleteLikeNovel:" + novelId, userId);
+    public void removeValue(String keyName, Long userId){
+        stringLongRedisTemplate.opsForSet().remove(keyName, userId);
     }
 
-    public void addNewLikeNovel(Long novelId, Long userId) {
-        stringLongRedisTemplate.opsForSet().add("newLikeNovel:" + novelId, userId);
+    public void addValue(String keyName, Long userId) {
+        stringLongRedisTemplate.opsForSet().add(keyName, userId);
     }
 
-    public boolean checkNewLikeNovel(Long novelId, Long userId) {
-        return Boolean.TRUE.equals(stringLongRedisTemplate.opsForSet().isMember("newLikeNovel:" + novelId, userId));
-    }
-
-    public void removeNewLikeNovelValue(Long novelId, Long userId) {
-        stringLongRedisTemplate.opsForSet().remove("newLikeNovel:" + novelId, userId);
-    }
-
-    public void addDeleteLikeNovel(Long novelId, Long userId) {
-        stringLongRedisTemplate.opsForSet().add("deleteLikeNovel:" + novelId, userId);
-    }
-
-    public boolean checkNewLikeComment(Long commentId, Long userId) {
-        return Boolean.TRUE.equals(stringLongRedisTemplate.opsForSet().isMember("newLikeComment:" + commentId, userId));
-    }
-
-    public void addNewLikeComment(Long commentId, Long userId) {
-        stringLongRedisTemplate.opsForSet().add("newLikeComment:" + commentId, userId);
-    }
 
     //novel redis service
-    public int getSizeNewLikeNovel(Long novelId) {
-        Long newLikeNovelSize = stringLongRedisTemplate.opsForSet().size("newLikeNovel:" + novelId);
+    public int getSize(String keyName) {
+        Long newLikeNovelSize = stringLongRedisTemplate.opsForSet().size(keyName);
         return newLikeNovelSize == null ? 0 : newLikeNovelSize.intValue();
-    }
-
-    public int getSizeNewLikeComment(Long commentId) {
-        Long newLikeCommentSize = stringLongRedisTemplate.opsForSet().size("newLikeComment:" + commentId);
-        return newLikeCommentSize == null ? 0 : newLikeCommentSize.intValue();
     }
 
     public boolean alreadyHasOldLikeNovelKey(Long novelId) {
@@ -71,10 +62,6 @@ public class RedisService {
     public boolean checkUsersLike(Long novelId, Long userId) {
         return Boolean.TRUE.equals(stringLongRedisTemplate.opsForSet().isMember("oldLikeNovel:" + novelId, userId))
                 || Boolean.TRUE.equals(stringLongRedisTemplate.opsForSet().isMember("newLikeNovel:" + novelId, userId));
-    }
-
-    public int getSizeOldLikeNovel(Long novelId) {
-        return Objects.requireNonNull(stringLongRedisTemplate.opsForSet().size("oldLikeNovel:" + novelId)).intValue();
     }
 
     //gameRoom redis service
