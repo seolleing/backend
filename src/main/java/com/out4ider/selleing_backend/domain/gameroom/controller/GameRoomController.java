@@ -4,11 +4,12 @@ import com.out4ider.selleing_backend.domain.gameroom.dto.GameRoomInquiryResponse
 import com.out4ider.selleing_backend.domain.gameroom.dto.GameRoomRequestDto;
 import com.out4ider.selleing_backend.domain.gameroom.dto.GameRoomSaveResponseDto;
 import com.out4ider.selleing_backend.domain.gameroom.service.GameRoomService;
+import com.out4ider.selleing_backend.global.security.SimpleCustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -18,8 +19,8 @@ public class GameRoomController {
     private final GameRoomService gameRoomService;
 
     @PostMapping
-    public ResponseEntity<?> saveGameRoom(@RequestBody GameRoomRequestDto gameRoomRequestDto, Principal principal) {
-        GameRoomSaveResponseDto gameRoomSaveResponseDto = gameRoomService.save(gameRoomRequestDto, principal.getName());
+    public ResponseEntity<?> saveGameRoom(@RequestBody GameRoomRequestDto gameRoomRequestDto, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
+        GameRoomSaveResponseDto gameRoomSaveResponseDto = gameRoomService.save(gameRoomRequestDto, simpleCustomUserDetails.getUserId());
         return ResponseEntity.ok().body(gameRoomSaveResponseDto);
     }
 
@@ -30,8 +31,8 @@ public class GameRoomController {
     }
 
     @DeleteMapping("/{roomId}")
-    public ResponseEntity<?> deleteGameRoom(@PathVariable Long roomId, Principal principal) {
-        gameRoomService.delete(roomId, principal.getName());
+    public ResponseEntity<?> deleteGameRoom(@PathVariable(name = "roomId") Long roomId, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
+        gameRoomService.delete(roomId, simpleCustomUserDetails.getUserId());
         return ResponseEntity.ok().build();
     }
 
@@ -61,8 +62,8 @@ public class GameRoomController {
 
     @PutMapping("/{roomId}")
     public ResponseEntity<?> updateRoom(@PathVariable(name = "roomId") Long roomId,
-                                        @RequestBody GameRoomRequestDto gameRoomRequestDto, Principal principal) {
-        gameRoomService.update(roomId, gameRoomRequestDto, principal.getName());
+                                        @RequestBody GameRoomRequestDto gameRoomRequestDto, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
+        gameRoomService.update(roomId, gameRoomRequestDto, simpleCustomUserDetails.getUserId());
         return ResponseEntity.ok().build();
     }
 }

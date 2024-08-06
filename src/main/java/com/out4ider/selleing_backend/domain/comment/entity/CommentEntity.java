@@ -36,16 +36,12 @@ public class CommentEntity {
     @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY)
     private List<LikeCommentEntity> likeComments;
 
-    public CommentResponseDto toCommentResponseDto() {
+    public CommentResponseDto toCommentResponseDto(int newLikeCount) {
         return CommentResponseDto.builder()
                 .commentId(this.id)
                 .content(this.content)
                 .nickname(this.user.getNickname())
-                .likeCount(this.likeComments.size())
+                .likeCount(this.likeComments.size()+newLikeCount)
                 .build();
-    }
-
-    public void addLikeComment(LikeCommentEntity likeCommentEntity) {
-        this.likeComments.add(likeCommentEntity);
     }
 }

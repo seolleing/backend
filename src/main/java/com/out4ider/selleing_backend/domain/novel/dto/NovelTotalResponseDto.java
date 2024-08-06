@@ -12,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class NovelTotalResponseDto {
     private boolean isLiked;
+    private int likeCount;
     private List<NovelInfoResponseDto> novelInfoResponseDtos;
     private List<CommentResponseDto> commentResponseDtos;
 }

@@ -4,16 +4,19 @@ import com.out4ider.selleing_backend.domain.novel.dto.NovelRequestDto;
 import com.out4ider.selleing_backend.domain.novel.dto.NovelResponseDto;
 import com.out4ider.selleing_backend.domain.novel.dto.NovelTotalResponseDto;
 import com.out4ider.selleing_backend.domain.novel.service.NovelService;
+import com.out4ider.selleing_backend.global.security.SimpleCustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/novels")
+@Slf4j
 public class NovelController {
     private final NovelService novelService;
 
@@ -31,8 +34,8 @@ public class NovelController {
     }
 
     @GetMapping("/{novelId}")
-    public ResponseEntity<?> getNovel(@PathVariable(name = "novelId") Long novelId, Principal principal){
-        NovelTotalResponseDto novelTotalResponseDtos = novelService.get(novelId, principal.getName());
+    public ResponseEntity<?> getNovel(@PathVariable(name = "novelId") Long novelId, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails){
+        NovelTotalResponseDto novelTotalResponseDtos = novelService.get(novelId, simpleCustomUserDetails.getUserId());
         return ResponseEntity.ok().body(novelTotalResponseDtos);
     }
 
@@ -42,9 +45,10 @@ public class NovelController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/bookmarks")
-    public ResponseEntity<?> getBookmarks(@RequestParam(name="page", required = false, defaultValue = "0") int page, Principal principal){
-        List<NovelResponseDto> novelResponseDtos = novelService.getBookmarks(page, principal.getName());
-        return ResponseEntity.ok().body(novelResponseDtos);
-    }
+    //즐겨찾기 따로 만들기
+//    @GetMapping("/bookmarks")
+//    public ResponseEntity<?> getBookmarks(@RequestParam(name="page", required = false, defaultValue = "0") int page, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails){
+//        List<NovelResponseDto> novelResponseDtos = novelService.getBookmarks(page, simpleCustomUserDetails.getUserId());
+//        return ResponseEntity.ok().body(novelResponseDtos);
+//    }
 }

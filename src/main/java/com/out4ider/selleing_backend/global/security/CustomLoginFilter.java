@@ -2,6 +2,7 @@ package com.out4ider.selleing_backend.global.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.out4ider.selleing_backend.domain.user.dto.UserRequestDto;
+import com.out4ider.selleing_backend.domain.user.dto.UserResponseDto;
 import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
 import com.out4ider.selleing_backend.global.exception.kind.FailedLoginException;
 import jakarta.servlet.FilterChain;
@@ -55,7 +56,6 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException {
-        String email = authResult.getName();
         Collection<? extends GrantedAuthority> authorities = authResult.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority grantedAuthority = iterator.next();
@@ -63,11 +63,12 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
 
 
         CustomUserDetails customUserDetails = (CustomUserDetails) authResult.getPrincipal();
-        response.getWriter().write(objectMapper.writeValueAsString(customUserDetails.getUserResponseDto()));
+        Long userId = customUserDetails.getUserId();
+        response.getWriter().write(objectMapper.writeValueAsString(new UserResponseDto(userId, customUserDetails.getNickname())));
 
-        String access = jwtUtil.createToken("access", email, role, 600000L);
-        String refresh = jwtUtil.createToken("refresh", email, role, 86400000L);
-        jwtUtil.putToken(email, refresh);
+        String access = jwtUtil.createToken("access", userId, role, 600000L);
+        String refresh = jwtUtil.createToken("refresh", userId, role, 86400000L);
+//        jwtUtil.putToken(userId, refresh);
         response.setHeader("Authorization", access);
         response.addCookie(createCookie("Refresh", refresh));
         response.setStatus(HttpStatus.OK.value());

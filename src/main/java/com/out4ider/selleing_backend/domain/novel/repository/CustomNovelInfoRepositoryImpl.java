@@ -19,7 +19,6 @@ public class CustomNovelInfoRepositoryImpl implements CustomNovelInfoRepository 
     public void batchInsert(List<NovelInfoRequestDto> novelInfoRequestDtos, Long novelId) {
         String sql = "INSERT INTO novel_info(content, novel_id, user_id) VALUES(?,?,?)";
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
-
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 NovelInfoRequestDto novelInfoRequestDto = novelInfoRequestDtos.get(i);

@@ -1,5 +1,6 @@
 package com.out4ider.selleing_backend.global.security;
 
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,11 +10,12 @@ import java.util.Collection;
 
 public class SimpleCustomUserDetails implements UserDetails {
 
-    private final String email;
     private final String role;
+    @Getter
+    private final Long userId;
 
-    public SimpleCustomUserDetails(String email, String role) {
-        this.email = email;
+    public SimpleCustomUserDetails(Long userId, String role) {
+        this.userId = userId;
         this.role = role;
     }
 
@@ -31,7 +33,7 @@ public class SimpleCustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return "";
     }
 
     @Override

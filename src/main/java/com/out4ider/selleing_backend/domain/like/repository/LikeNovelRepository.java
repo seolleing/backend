@@ -5,13 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.Optional;
+import java.util.List;
 
-public interface LikeNovelRepository extends JpaRepository<LikeNovelEntity, Long> {
-    @Modifying
-    @Query("delete from LikeNovelEntity l where l.novel.novelId=?1 and l.user.email=?2")
-    void deleteByNovelIdAndEmail(Long novelId, String email);
-
-    @Query("select l from LikeNovelEntity l where l.novel.novelId=?1 and l.user.email=?2")
-    Optional<LikeNovelEntity> findLikeNovel(Long novelId, String email);
+public interface LikeNovelRepository extends JpaRepository<LikeNovelEntity, Long>, CustomLikeNovelRepository {
+    @Query("select l from LikeNovelEntity l join fetch l.user where l.novel.novelId=?1")
+    List<LikeNovelEntity> findLikeNovel(Long novelId);
 }

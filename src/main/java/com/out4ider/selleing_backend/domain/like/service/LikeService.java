@@ -1,76 +1,102 @@
 package com.out4ider.selleing_backend.domain.like.service;
 
-import com.out4ider.selleing_backend.domain.comment.entity.CommentEntity;
-import com.out4ider.selleing_backend.domain.comment.repository.CommentRepository;
-import com.out4ider.selleing_backend.domain.like.entity.LikeCommentEntity;
-import com.out4ider.selleing_backend.domain.like.entity.LikeNovelEntity;
 import com.out4ider.selleing_backend.domain.like.repository.LikeCommentRepository;
 import com.out4ider.selleing_backend.domain.like.repository.LikeNovelRepository;
-import com.out4ider.selleing_backend.domain.novel.entity.NovelEntity;
-import com.out4ider.selleing_backend.domain.novel.repository.NovelRepository;
-import com.out4ider.selleing_backend.domain.user.entity.UserEntity;
-import com.out4ider.selleing_backend.domain.user.repository.UserRepository;
 import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
 import com.out4ider.selleing_backend.global.exception.kind.AlreadyDoingException;
-import com.out4ider.selleing_backend.global.exception.kind.NotFoundElementException;
+import com.out4ider.selleing_backend.global.service.RedisService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class LikeService {
-    private final LikeNovelRepository likeNovelRepository;
     private final LikeCommentRepository likeCommentRepository;
-    private final NovelRepository novelRepository;
-    private final UserRepository userRepository;
-    private final CommentRepository commentRepository;
+    private final RedisService redisService;
+    private final LikeNovelRepository likeNovelRepository;
+    @Value("${spring.batchSize}")
+    private int batchSize;
 
     @Transactional
-    public int likeNovel(Long id, String email) {
-        int size = 0;
-        NovelEntity novelEntity = novelRepository.findByIdWithLikeNovel(id).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
-        size = novelEntity.getLikeNovels().size();
-        UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
-        LikeNovelEntity likeNovelEntity = LikeNovelEntity.builder()
-                .novel(novelEntity)
-                .user(userEntity)
-                .build();
-        likeNovelRepository.save(likeNovelEntity);
-        novelEntity.addLikeNovel(likeNovelEntity);
-        userEntity.addLikeNovel(likeNovelEntity);
-        return size + 1;
+    public void likeNovel(Long novelId, Long userId) {
+        if (redisService.checkValueExisting("deleteLikeNovel:"+novelId, userId)) {
+            redisService.removeValue("deleteLikeNovel:"+novelId, userId);
+        } else {
+            redisService.addValue("newLikeNovel:"+novelId, userId);
+        }
     }
 
     @Transactional
-    public int unlikeNovel(Long id, String email) {
-        int size = 0;
-        NovelEntity novelEntity = novelRepository.findByIdWithLikeNovel(id).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
-        size = novelEntity.getLikeNovels().size();
-        likeNovelRepository.deleteByNovelIdAndEmail(id, email);
-        return size - 1;
+    public void unlikeNovel(Long novelId, Long userId) {
+        if (redisService.checkValueExisting("newLikeNovel:"+novelId, userId)) {
+            redisService.removeValue("newLikeNovel:"+novelId, userId);
+        }
+        redisService.addValue("deleteLikeNovel:"+novelId, userId);
     }
 
     @Transactional
-    public int likeComment(Long id, String email) {
-        if (likeCommentRepository.findLikeComment(id, email).isPresent()) {
+    public void likeComment(Long id, Long userId) {
+        if (redisService.checkValueExisting("newLikeComment:"+id, userId)
+                || likeCommentRepository.findLikeComment(id, userId).isPresent()) {
             throw new AlreadyDoingException(ExceptionEnum.ALREADYDOING.ordinal(), "이미 좋아요를 누르셨습니다.", HttpStatus.FORBIDDEN);
         } else {
-            int size = 0;
-            CommentEntity commentEntity = commentRepository.findByIdWithLikeComment(id).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
-            size = commentEntity.getLikeComments().size();
-            UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
-            LikeCommentEntity likeCommentEntity = LikeCommentEntity.builder()
-                    .comment(commentEntity)
-                    .user(userEntity)
-                    .build();
-            likeCommentRepository.save(likeCommentEntity);
-            commentEntity.addLikeComment(likeCommentEntity);
-            userEntity.addLikeComment(likeCommentEntity);
-            return size + 1;
+            redisService.addValue("newLikeComment:"+id, userId);
+        }
+    }
+
+    @Scheduled(fixedDelay = 3000000, initialDelay = 3000000)
+    @Transactional
+    public void likeNovelCacheToDB() {
+        Set<String> newNovelIds = redisService.getAllKey("newLikeNovel:*");
+        List<Pair<Long,Long>> novelIdAndUserIdList = new ArrayList<>(100);
+        if (newNovelIds != null) {
+            Set<Long> novelIds = newNovelIds.stream().map(novelId -> Long.valueOf(novelId.split(":")[1])).collect(Collectors.toSet());
+            for (Long novelId : novelIds) {
+                Set<Long> userIds = redisService.getAllValue("newLikeNovel:" + novelId);
+                for(Long userId : userIds){
+                    novelIdAndUserIdList.add(Pair.of(novelId, userId));
+                    if(novelIdAndUserIdList.size()==batchSize){
+                        likeNovelRepository.batchInsert(novelIdAndUserIdList);
+                    }
+                }
+            }
+            if(!novelIdAndUserIdList.isEmpty()) {
+                likeNovelRepository.batchInsert(novelIdAndUserIdList);
+            }
+            redisService.removeAllNewKey(newNovelIds);
+        }
+    }
+
+    @Scheduled(fixedDelay = 3300000, initialDelay = 3300000)
+    @Transactional
+    public void likeCommentCacheToDB() {
+        Set<String> newCommentIds = redisService.getAllKey("newLikeComment:*");
+        List<Pair<Long, Long>> commentIdAndUserIdList = new ArrayList<>(100);
+        if (newCommentIds != null) {
+            Set<Long> commentIds = newCommentIds.stream().map(novelId -> Long.valueOf(novelId.split(":")[1])).collect(Collectors.toSet());
+            for (Long commentId : commentIds) {
+                Set<Long> userIds = redisService.getAllValue("newLikeComment:"+commentId);
+                for (Long userId : userIds) {
+                    commentIdAndUserIdList.add(Pair.of(commentId, userId));
+                    if (commentIdAndUserIdList.size() == batchSize) {
+                        likeCommentRepository.batchInsert(commentIdAndUserIdList);
+                    }
+                }
+            }
+            if(!commentIdAndUserIdList.isEmpty()){
+                likeCommentRepository.batchInsert(commentIdAndUserIdList);
+            }
+            redisService.removeAllNewKey(newCommentIds);
         }
     }
 }

@@ -36,8 +36,8 @@ public class UserService {
     }
 
     @Transactional
-    public void update(String email, String nickname) {
-        UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+    public void update(Long userId, String nickname) {
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         userEntity.setNickname(nickname);
         userRepository.save(userEntity);
     }

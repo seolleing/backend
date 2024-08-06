@@ -1,7 +1,7 @@
 package com.out4ider.selleing_backend.domain.novel.service;
 
-import com.out4ider.selleing_backend.domain.comment.entity.CommentEntity;
 import com.out4ider.selleing_backend.domain.comment.repository.CommentRepository;
+import com.out4ider.selleing_backend.domain.like.entity.LikeNovelEntity;
 import com.out4ider.selleing_backend.domain.like.repository.LikeNovelRepository;
 import com.out4ider.selleing_backend.domain.novel.dto.NovelRequestDto;
 import com.out4ider.selleing_backend.domain.novel.dto.NovelResponseDto;
@@ -12,12 +12,14 @@ import com.out4ider.selleing_backend.domain.novel.repository.NovelInfoRepository
 import com.out4ider.selleing_backend.domain.novel.repository.NovelRepository;
 import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
 import com.out4ider.selleing_backend.global.exception.kind.NotFoundElementException;
+import com.out4ider.selleing_backend.global.service.RedisService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ public class NovelService {
     private final CommentRepository commentRepository;
     private final NovelInfoRepository novelInfoRepository;
     private final LikeNovelRepository likeNovelRepository;
+    private final RedisService redisService;
 
     @Transactional
     public Long save(NovelRequestDto novelRequestDto) {
@@ -49,18 +52,39 @@ public class NovelService {
         List<NovelResponseDto> novelResponseDtos = null;
         if (orderby.equals("novelId")) {
             pageable = PageRequest.of(page, 10, Sort.by(orderby).descending());
-            novelResponseDtos= novelRepository.findAllWithNovelId(pageable).stream().map(NovelEntity::toNovelResponseDto).toList();
+            novelResponseDtos = novelRepository.findAllWithNovelId(pageable).stream().map(novelEntity -> {
+                int newLikeCount = redisService.getSize("newLikeNovel:"+novelEntity.getNovelId());
+                return novelEntity.toNovelResponseDto(newLikeCount);
+            }).toList();
         } else {
             pageable = PageRequest.of(page, 10);
-            novelResponseDtos = novelRepository.findAllWithLikeNovel(pageable).stream().map(NovelEntity::toNovelResponseDto).toList();
+            novelResponseDtos = novelRepository.findAllWithLikeNovel(pageable).stream().map(novelEntity -> {
+                int newLikeCount = redisService.getSize("newLikeNovel:"+novelEntity.getNovelId());
+                return novelEntity.toNovelResponseDto(newLikeCount);
+            }).toList();
         }
         return novelResponseDtos;
     }
 
-    public NovelTotalResponseDto get(Long novelId, String email) {
-        boolean isLiked = likeNovelRepository.findLikeNovel(novelId, email).isPresent();
-        return new NovelTotalResponseDto(isLiked, novelInfoRepository.findByNovelId(novelId).stream().map(NovelInfoEntity::toNovelInfoResponseDto).toList(),
-                commentRepository.findByNovelId(novelId).stream().map(CommentEntity::toCommentResponseDto).toList());
+    @Async
+    public NovelTotalResponseDto get(Long novelId, Long userId) {
+        boolean isLiked = false;
+        int likeCount = 0;
+        if (redisService.alreadyHasOldLikeNovelKey(novelId)) {
+            List<LikeNovelEntity> likeNovelEntities = likeNovelRepository.findLikeNovel(novelId);
+            List<Long> userIds = likeNovelEntities.stream().map(likeNovelEntity -> likeNovelEntity.getUser().getUserId()).toList();
+            isLiked = userIds.contains(userId);
+            likeCount = likeNovelEntities.size();
+            redisService.addOldLikeNovel(novelId,userIds.toArray(new Long[0]));
+        } else {
+            isLiked = redisService.checkUsersLike(novelId,userId);
+            likeCount = redisService.getSize("oldLikeNovel:"+novelId);
+        }
+        return new NovelTotalResponseDto(isLiked, likeCount+redisService.getSize("newLikeNovel:"+novelId), novelInfoRepository.findByNovelId(novelId).stream().map(NovelInfoEntity::toNovelInfoResponseDto).toList(),
+                commentRepository.findByNovelId(novelId).stream().map(commentEntity -> {
+                    int newLikeCount = redisService.getSize("newLikeComment:"+commentEntity.getId());
+                    return commentEntity.toCommentResponseDto(newLikeCount);
+                }).toList());
     }
 
     @Transactional
@@ -70,8 +94,11 @@ public class NovelService {
         novelRepository.save(novelEntity);
     }
 
-    public List<NovelResponseDto> getBookmarks(int page, String email) {
-        Pageable pageable = PageRequest.of(page, 10, Sort.by("novelId").descending());
-        return novelRepository.findAllWithLike(pageable, email).stream().map(NovelEntity::toNovelResponseDto).toList();
-    }
+//    public List<NovelResponseDto> getBookmarks(int page, String email) {
+//        Pageable pageable = PageRequest.of(page, 10, Sort.by("novelId").descending());
+//        return novelRepository.findAllWithLike(pageable, email).stream().map(novelEntity -> {
+//            Long newLikeCount = stringLongRedisTemplate.opsForSet().size("newLikeNovel:" + novelEntity.getNovelId());
+//            return novelEntity.toNovelResponseDto(newLikeCount == null ? 0 : newLikeCount.intValue());
+//        }).toList();
+//    }
 }
