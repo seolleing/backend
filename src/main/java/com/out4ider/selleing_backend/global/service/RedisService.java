@@ -2,6 +2,7 @@ package com.out4ider.selleing_backend.global.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -21,7 +22,7 @@ public class RedisService {
     }
 
     //schedule redis service
-    public void removeAllNewKey(Set<String> keyNames) {
+    public void removeAllKey(Set<String> keyNames) {
         stringLongRedisTemplate.delete(keyNames);
     }
 
@@ -53,6 +54,7 @@ public class RedisService {
         return Boolean.TRUE.equals(stringLongRedisTemplate.hasKey("oldLikeNovel:" + novelId));
     }
 
+    @Async
     public void addOldLikeNovel(Long novelId, Long[] userIds) {
         String keyName = "oldLikeNovel:" + novelId;
         stringLongRedisTemplate.opsForSet().add(keyName, userIds);
