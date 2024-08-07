@@ -7,15 +7,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface NovelRepository extends JpaRepository<NovelEntity, Long> {
     @Query("select n from NovelEntity n")
     List<NovelEntity> findAllWithNovelId(Pageable pageable);
-    @Query("select distinct n from NovelEntity n left join fetch n.likeNovels where n.novelId=?1")
-    Optional<NovelEntity> findByIdWithLikeNovel(Long id);
+
     @Query("select n from NovelEntity n left join n.likeNovels l group by n order by count(l) desc")
     List<NovelEntity> findAllWithLikeNovel(Pageable pageable);
-    @Query("select n from NovelEntity n join n.likeNovels l join l.user u where u.email=:email")
-    List<NovelEntity> findAllWithLike(Pageable pageable, @Param("email") String email);
+
+    @Query("select n from NovelEntity n join n.bookmarks b where b.user.userId=:userId")
+    List<NovelEntity> findAllWithBookmark(Pageable pageable, @Param("userId") Long userId);
 }
