@@ -33,4 +33,23 @@ public class CustomLikeNovelRepositoryImpl implements CustomLikeNovelRepository 
         });
         pairList.clear();
     }
+
+    @Override
+    public void batchDelete(List<Pair<Long, Long>> pairList) {
+        String sql = "DELETE FROM like_novel WHERE novel_id=? AND user_id=?";
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                Pair<Long,Long> novelIdAndUserId = pairList.get(i);
+                ps.setLong(1, novelIdAndUserId.getLeft());
+                ps.setLong(2, novelIdAndUserId.getRight());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return pairList.size();
+            }
+        });
+        pairList.clear();
+    }
 }

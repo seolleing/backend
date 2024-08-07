@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface CustomLikeNovelRepository {
     void batchInsert(List<Pair<Long,Long>> pairList);
+    void batchDelete(List<Pair<Long, Long>> pairList);
 }

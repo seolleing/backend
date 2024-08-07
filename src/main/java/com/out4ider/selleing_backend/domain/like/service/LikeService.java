@@ -29,28 +29,28 @@ public class LikeService {
 
     @Transactional
     public void likeNovel(Long novelId, Long userId) {
-        if (redisService.checkValueExisting("deleteLikeNovel:"+novelId, userId)) {
-            redisService.removeValue("deleteLikeNovel:"+novelId, userId);
+        if (redisService.checkValueExisting("deleteLikeNovel:" + novelId, userId)) {
+            redisService.removeValue("deleteLikeNovel:" + novelId, userId);
         } else {
-            redisService.addValue("newLikeNovel:"+novelId, userId);
+            redisService.addValue("newLikeNovel:" + novelId, userId);
         }
     }
 
     @Transactional
     public void unlikeNovel(Long novelId, Long userId) {
-        if (redisService.checkValueExisting("newLikeNovel:"+novelId, userId)) {
-            redisService.removeValue("newLikeNovel:"+novelId, userId);
+        if (redisService.checkValueExisting("newLikeNovel:" + novelId, userId)) {
+            redisService.removeValue("newLikeNovel:" + novelId, userId);
         }
-        redisService.addValue("deleteLikeNovel:"+novelId, userId);
+        redisService.addValue("deleteLikeNovel:" + novelId, userId);
     }
 
     @Transactional
     public void likeComment(Long id, Long userId) {
-        if (redisService.checkValueExisting("newLikeComment:"+id, userId)
+        if (redisService.checkValueExisting("newLikeComment:" + id, userId)
                 || likeCommentRepository.findLikeComment(id, userId).isPresent()) {
             throw new AlreadyDoingException(ExceptionEnum.ALREADYDOING.ordinal(), "이미 좋아요를 누르셨습니다.", HttpStatus.FORBIDDEN);
         } else {
-            redisService.addValue("newLikeComment:"+id, userId);
+            redisService.addValue("newLikeComment:" + id, userId);
         }
     }
 
@@ -58,22 +58,22 @@ public class LikeService {
     @Transactional
     public void likeNovelCacheToDB() {
         Set<String> newNovelIds = redisService.getAllKey("newLikeNovel:*");
-        List<Pair<Long,Long>> novelIdAndUserIdList = new ArrayList<>(100);
+        List<Pair<Long, Long>> novelIdAndUserIdList = new ArrayList<>(batchSize);
         if (newNovelIds != null) {
             Set<Long> novelIds = newNovelIds.stream().map(novelId -> Long.valueOf(novelId.split(":")[1])).collect(Collectors.toSet());
             for (Long novelId : novelIds) {
                 Set<Long> userIds = redisService.getAllValue("newLikeNovel:" + novelId);
-                for(Long userId : userIds){
+                for (Long userId : userIds) {
                     novelIdAndUserIdList.add(Pair.of(novelId, userId));
-                    if(novelIdAndUserIdList.size()==batchSize){
+                    if (novelIdAndUserIdList.size() == batchSize) {
                         likeNovelRepository.batchInsert(novelIdAndUserIdList);
                     }
                 }
             }
-            if(!novelIdAndUserIdList.isEmpty()) {
+            if (!novelIdAndUserIdList.isEmpty()) {
                 likeNovelRepository.batchInsert(novelIdAndUserIdList);
             }
-            redisService.removeAllNewKey(newNovelIds);
+            redisService.removeAllKey(newNovelIds);
         }
     }
 
@@ -81,11 +81,11 @@ public class LikeService {
     @Transactional
     public void likeCommentCacheToDB() {
         Set<String> newCommentIds = redisService.getAllKey("newLikeComment:*");
-        List<Pair<Long, Long>> commentIdAndUserIdList = new ArrayList<>(100);
+        List<Pair<Long, Long>> commentIdAndUserIdList = new ArrayList<>(batchSize);
         if (newCommentIds != null) {
             Set<Long> commentIds = newCommentIds.stream().map(novelId -> Long.valueOf(novelId.split(":")[1])).collect(Collectors.toSet());
             for (Long commentId : commentIds) {
-                Set<Long> userIds = redisService.getAllValue("newLikeComment:"+commentId);
+                Set<Long> userIds = redisService.getAllValue("newLikeComment:" + commentId);
                 for (Long userId : userIds) {
                     commentIdAndUserIdList.add(Pair.of(commentId, userId));
                     if (commentIdAndUserIdList.size() == batchSize) {
@@ -93,10 +93,34 @@ public class LikeService {
                     }
                 }
             }
-            if(!commentIdAndUserIdList.isEmpty()){
+            if (!commentIdAndUserIdList.isEmpty()) {
                 likeCommentRepository.batchInsert(commentIdAndUserIdList);
             }
-            redisService.removeAllNewKey(newCommentIds);
+            redisService.removeAllKey(newCommentIds);
+        }
+    }
+
+    @Scheduled(fixedDelay = 3600000, initialDelay = 3600000)
+    @Transactional
+    public void deleteLikeNovelInDB() {
+        System.out.println("run");
+        Set<String> deleteNovelIds = redisService.getAllKey("deleteLikeNovel:*");
+        List<Pair<Long, Long>> novelIdAndUserIdList = new ArrayList<>(batchSize);
+        if (deleteNovelIds != null) {
+            Set<Long> novelIds = deleteNovelIds.stream().map(novelId -> Long.valueOf(novelId.split(":")[1])).collect(Collectors.toSet());
+            for (Long novelId : novelIds) {
+                Set<Long> userIds = redisService.getAllValue("deleteLikeNovel:" + novelId);
+                for (Long userId : userIds) {
+                    novelIdAndUserIdList.add(Pair.of(novelId, userId));
+                    if (novelIdAndUserIdList.size() == batchSize) {
+                        likeNovelRepository.batchDelete(novelIdAndUserIdList);
+                    }
+                }
+            }
+            if (!novelIdAndUserIdList.isEmpty()) {
+                likeNovelRepository.batchDelete(novelIdAndUserIdList);
+            }
+            redisService.removeAllKey(deleteNovelIds);
         }
     }
 }
