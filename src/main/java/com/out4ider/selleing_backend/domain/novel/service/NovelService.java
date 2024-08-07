@@ -53,13 +53,13 @@ public class NovelService {
         if (orderby.equals("novelId")) {
             pageable = PageRequest.of(page, 10, Sort.by(orderby).descending());
             novelResponseDtos = novelRepository.findAllWithNovelId(pageable).stream().map(novelEntity -> {
-                int newLikeCount = redisService.getSize("newLikeNovel:"+novelEntity.getNovelId());
+                int newLikeCount = redisService.getSize("newLikeNovel:" + novelEntity.getNovelId());
                 return novelEntity.toNovelResponseDto(newLikeCount);
             }).toList();
         } else {
             pageable = PageRequest.of(page, 10);
             novelResponseDtos = novelRepository.findAllWithLikeNovel(pageable).stream().map(novelEntity -> {
-                int newLikeCount = redisService.getSize("newLikeNovel:"+novelEntity.getNovelId());
+                int newLikeCount = redisService.getSize("newLikeNovel:" + novelEntity.getNovelId());
                 return novelEntity.toNovelResponseDto(newLikeCount);
             }).toList();
         }
@@ -68,21 +68,21 @@ public class NovelService {
 
     @Async
     public NovelTotalResponseDto get(Long novelId, Long userId) {
-        boolean isLiked = false;
-        int likeCount = 0;
+        int likeCount;
+        boolean isContainUserId;
         if (redisService.alreadyHasOldLikeNovelKey(novelId)) {
             List<LikeNovelEntity> likeNovelEntities = likeNovelRepository.findLikeNovel(novelId);
             List<Long> userIds = likeNovelEntities.stream().map(likeNovelEntity -> likeNovelEntity.getUser().getUserId()).toList();
-            isLiked = userIds.contains(userId);
+            isContainUserId = userIds.contains(userId);
             likeCount = likeNovelEntities.size();
-            redisService.addOldLikeNovel(novelId,userIds.toArray(new Long[0]));
+            redisService.addOldLikeNovel(novelId, userIds.toArray(new Long[0]));
         } else {
-            isLiked = redisService.checkUsersLike(novelId,userId);
-            likeCount = redisService.getSize("oldLikeNovel:"+novelId);
+            isContainUserId = redisService.checkValueExisting("oldLikeNovel:" + novelId, userId);
+            likeCount = redisService.getSize("oldLikeNovel:" + novelId);
         }
-        return new NovelTotalResponseDto(isLiked, likeCount+redisService.getSize("newLikeNovel:"+novelId), novelInfoRepository.findByNovelId(novelId).stream().map(NovelInfoEntity::toNovelInfoResponseDto).toList(),
+        return new NovelTotalResponseDto(checkLiked(isContainUserId,novelId,userId), likeCount + redisService.getSize("newLikeNovel:" + novelId), novelInfoRepository.findByNovelId(novelId).stream().map(NovelInfoEntity::toNovelInfoResponseDto).toList(),
                 commentRepository.findByNovelId(novelId).stream().map(commentEntity -> {
-                    int newLikeCount = redisService.getSize("newLikeComment:"+commentEntity.getId());
+                    int newLikeCount = redisService.getSize("newLikeComment:" + commentEntity.getId());
                     return commentEntity.toCommentResponseDto(newLikeCount);
                 }).toList());
     }
@@ -101,4 +101,9 @@ public class NovelService {
 //            return novelEntity.toNovelResponseDto(newLikeCount == null ? 0 : newLikeCount.intValue());
 //        }).toList();
 //    }
+
+    private boolean checkLiked(boolean isContainUserId, Long novelId, Long userId) {
+        return isContainUserId && !redisService.checkValueExisting("deleteLikeNovel:" + novelId, userId)
+                || !isContainUserId && redisService.checkValueExisting("newLikeNovel:" + novelId, userId);
+    }
 }

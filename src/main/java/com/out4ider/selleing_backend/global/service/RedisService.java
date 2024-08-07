@@ -15,26 +15,26 @@ public class RedisService {
     private final RedisTemplate<String, Long> stringLongRedisTemplate;
     private final Duration expiredTime = Duration.ofHours(2);
 
-    //schedule redis service
-    public void removeAllNewKey(Set<String> keyNames){
-        stringLongRedisTemplate.delete(keyNames);
-    }
-
-    public Set<String> getAllKey(String keyName){
-        return stringLongRedisTemplate.keys(keyName);
-    }
-
-    public Set<Long> getAllValue(String keyName){
-        return stringLongRedisTemplate.opsForSet().members(keyName);
-    }
-
-
-    //like redis service
-    public boolean checkValueExisting(String keyName, Long userId){
+    //common
+    public boolean checkValueExisting(String keyName, Long userId) {
         return Boolean.TRUE.equals(stringLongRedisTemplate.opsForSet().isMember(keyName, userId));
     }
 
-    public void removeValue(String keyName, Long userId){
+    //schedule redis service
+    public void removeAllNewKey(Set<String> keyNames) {
+        stringLongRedisTemplate.delete(keyNames);
+    }
+
+    public Set<String> getAllKey(String keyName) {
+        return stringLongRedisTemplate.keys(keyName);
+    }
+
+    public Set<Long> getAllValue(String keyName) {
+        return stringLongRedisTemplate.opsForSet().members(keyName);
+    }
+
+    //like redis service
+    public void removeValue(String keyName, Long userId) {
         stringLongRedisTemplate.opsForSet().remove(keyName, userId);
     }
 
@@ -59,11 +59,6 @@ public class RedisService {
         stringLongRedisTemplate.expire(keyName, expiredTime);
     }
 
-    public boolean checkUsersLike(Long novelId, Long userId) {
-        return Boolean.TRUE.equals(stringLongRedisTemplate.opsForSet().isMember("oldLikeNovel:" + novelId, userId))
-                || Boolean.TRUE.equals(stringLongRedisTemplate.opsForSet().isMember("newLikeNovel:" + novelId, userId));
-    }
-
     //gameRoom redis service
     public void setGameRoomInitialHeadCount(Long gameRoomId) {
         stringByteRedisTemplate.opsForValue().set("gameRoom:" + gameRoomId, (byte) 1);
@@ -75,14 +70,14 @@ public class RedisService {
 
     public void subGameRoomHeadCount(Long gameRoomId) {
         byte currentHeadCount = this.getGameRoomHeadCount(gameRoomId);
-        byte newHeadCount = (byte)(currentHeadCount-1);
-        stringByteRedisTemplate.opsForValue().set("gameRoom:"+gameRoomId, newHeadCount);
+        byte newHeadCount = (byte) (currentHeadCount - 1);
+        stringByteRedisTemplate.opsForValue().set("gameRoom:" + gameRoomId, newHeadCount);
     }
 
     public byte addGameRoomHeadCount(Long gameRoomId) {
         byte currentHeadCount = this.getGameRoomHeadCount(gameRoomId);
-        byte newHeadCount = (byte)(currentHeadCount+1);
-        stringByteRedisTemplate.opsForValue().set("gameRoom:"+gameRoomId, newHeadCount);
+        byte newHeadCount = (byte) (currentHeadCount + 1);
+        stringByteRedisTemplate.opsForValue().set("gameRoom:" + gameRoomId, newHeadCount);
         return newHeadCount;
     }
 
