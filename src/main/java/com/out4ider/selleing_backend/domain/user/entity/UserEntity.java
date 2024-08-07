@@ -1,5 +1,6 @@
 package com.out4ider.selleing_backend.domain.user.entity;
 
+import com.out4ider.selleing_backend.domain.bookmark.entity.BookmarkEntity;
 import com.out4ider.selleing_backend.domain.like.entity.LikeCommentEntity;
 import com.out4ider.selleing_backend.domain.like.entity.LikeNovelEntity;
 import jakarta.persistence.*;
@@ -38,11 +39,7 @@ public class UserEntity {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<LikeCommentEntity> likeComments;
 
-    public void addLikeNovel(LikeNovelEntity likeNovelEntity) {
-        this.likeNovels.add(likeNovelEntity);
-    }
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<BookmarkEntity> bookmarks;
 
-    public void addLikeComment(LikeCommentEntity likeCommentEntity) {
-        this.likeComments.add(likeCommentEntity);
-    }
 }

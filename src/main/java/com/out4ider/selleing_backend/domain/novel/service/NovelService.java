@@ -92,13 +92,13 @@ public class NovelService {
         novelRepository.save(novelEntity);
     }
 
-//    public List<NovelResponseDto> getBookmarks(int page, String email) {
-//        Pageable pageable = PageRequest.of(page, 10, Sort.by("novelId").descending());
-//        return novelRepository.findAllWithLike(pageable, email).stream().map(novelEntity -> {
-//            Long newLikeCount = stringLongRedisTemplate.opsForSet().size("newLikeNovel:" + novelEntity.getNovelId());
-//            return novelEntity.toNovelResponseDto(newLikeCount == null ? 0 : newLikeCount.intValue());
-//        }).toList();
-//    }
+    public List<NovelResponseDto> getBookmarks(int page, Long userId) {
+        Pageable pageable = PageRequest.of(page, 10, Sort.by("novelId").descending());
+        return novelRepository.findAllWithBookmark(pageable, userId).stream().map(novelEntity -> {
+            int newLikeCount = redisService.getSize("newLikeNovel:" + novelEntity.getNovelId());
+            return novelEntity.toNovelResponseDto(newLikeCount);
+        }).toList();
+    }
 
     private boolean checkLiked(boolean isContainUserId, Long novelId, Long userId) {
         return isContainUserId || redisService.checkValueExisting("newLikeNovel:" + novelId, userId);

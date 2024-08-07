@@ -45,10 +45,9 @@ public class NovelController {
         return ResponseEntity.ok().build();
     }
 
-    //즐겨찾기 따로 만들기
-//    @GetMapping("/bookmarks")
-//    public ResponseEntity<?> getBookmarks(@RequestParam(name="page", required = false, defaultValue = "0") int page, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails){
-//        List<NovelResponseDto> novelResponseDtos = novelService.getBookmarks(page, simpleCustomUserDetails.getUserId());
-//        return ResponseEntity.ok().body(novelResponseDtos);
-//    }
+    @GetMapping("/bookmarks")
+    public ResponseEntity<?> getBookmarks(@RequestParam(name="page", required = false, defaultValue = "0") int page, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails){
+        List<NovelResponseDto> novelResponseDtos = novelService.getBookmarks(page, simpleCustomUserDetails.getUserId());
+        return ResponseEntity.ok().body(novelResponseDtos);
+    }
 }
