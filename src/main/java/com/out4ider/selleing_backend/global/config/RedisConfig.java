@@ -23,7 +23,7 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, Byte> StringByteRedisTemplate() {
+    public RedisTemplate<String, Byte> stringByteRedisTemplate() {
         RedisTemplate<String, Byte> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory());
         redisTemplate.setKeySerializer(new StringRedisSerializer());
@@ -31,10 +31,18 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, Long> StringLongRedisTemplate() {
+    public RedisTemplate<String, Long> stringLongRedisTemplate() {
         RedisTemplate<String, Long> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory());
         redisTemplate.setKeySerializer(new StringRedisSerializer());
+        return redisTemplate;
+    }
+
+    @Bean
+    public RedisTemplate<Long, String> longStringRedisTemplate() {
+        RedisTemplate<Long, String> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory());
+        redisTemplate.setValueSerializer(new StringRedisSerializer());
         return redisTemplate;
     }
 }

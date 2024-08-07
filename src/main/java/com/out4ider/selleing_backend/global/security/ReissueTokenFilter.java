@@ -2,6 +2,7 @@ package com.out4ider.selleing_backend.global.security;
 
 import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
 import com.out4ider.selleing_backend.global.exception.kind.InvalidLoginTokenException;
+import com.out4ider.selleing_backend.global.service.RedisService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,13 +14,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @Slf4j
 public class ReissueTokenFilter extends OncePerRequestFilter {
     private final JWTUtil jwtUtil;
+    private final RedisService redisService;
 
-    public ReissueTokenFilter(final JWTUtil jwtUtil) {
+    public ReissueTokenFilter(final JWTUtil jwtUtil, RedisService redisService) {
         this.jwtUtil = jwtUtil;
+        this.redisService = redisService;
     }
 
     @Override
@@ -33,7 +37,6 @@ public class ReissueTokenFilter extends OncePerRequestFilter {
                     if (refresh == null) {
                         throw new InvalidLoginTokenException(ExceptionEnum.INVALIDTOKEN.ordinal(), "This is Invalid Token", HttpStatus.UNAUTHORIZED);
                     }
-
                     try {
                         jwtUtil.isExpired(refresh);
                     } catch (ExpiredJwtException e) {
@@ -49,6 +52,10 @@ public class ReissueTokenFilter extends OncePerRequestFilter {
 
                     Long userId = jwtUtil.getUserId(refresh);
                     String role = jwtUtil.getRole(refresh);
+
+                    if(Objects.equals(redisService.getToken(userId), refresh)){
+                        throw new InvalidLoginTokenException(ExceptionEnum.INVALIDTOKEN.ordinal(), "This is Invalid Token", HttpStatus.UNAUTHORIZED);
+                    }
 
                     String newAccess = jwtUtil.createToken("access", userId, role, 600000L);
                     response.setHeader("Authorization", newAccess);

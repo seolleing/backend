@@ -68,7 +68,7 @@ public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
 
         String access = jwtUtil.createToken("access", userId, role, 600000L);
         String refresh = jwtUtil.createToken("refresh", userId, role, 86400000L);
-//        jwtUtil.putToken(userId, refresh);
+        jwtUtil.setToken(userId, refresh, 86400000L);
         response.setHeader("Authorization", access);
         response.addCookie(createCookie("Refresh", refresh));
         response.setStatus(HttpStatus.OK.value());

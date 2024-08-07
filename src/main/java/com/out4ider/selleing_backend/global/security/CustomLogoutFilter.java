@@ -46,7 +46,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
         }
         if(refresh != null) {
             Long userId = jwtUtil.getUserId(refresh);
-//            jwtUtil.deleteToken(userId);
+            jwtUtil.deleteToken(userId);
         }
         SecurityContextHolder.clearContext();
         Cookie cookie = new Cookie("Refresh", null);

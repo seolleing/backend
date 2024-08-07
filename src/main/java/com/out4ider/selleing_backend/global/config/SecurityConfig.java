@@ -2,11 +2,11 @@ package com.out4ider.selleing_backend.global.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.out4ider.selleing_backend.global.security.*;
+import com.out4ider.selleing_backend.global.service.RedisService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -31,7 +31,7 @@ public class SecurityConfig {
     private final JWTUtil jwtUtil;
     private final AuthenticationConfiguration authenticationConfiguration;
     private final ObjectMapper objectMapper;
-    private final StringRedisTemplate stringRedisTemplate;
+    private final RedisService redisService;
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -69,7 +69,7 @@ public class SecurityConfig {
         http
                 .addFilterBefore(new JWTFilter(jwtUtil), CustomLoginFilter.class);
         http
-                .addFilterBefore(new ReissueTokenFilter(jwtUtil), CustomLoginFilter.class);
+                .addFilterBefore(new ReissueTokenFilter(jwtUtil,redisService), CustomLoginFilter.class);
         http
                 .addFilterBefore(new ExceptionHandleFilter(objectMapper), JWTFilter.class);
         http

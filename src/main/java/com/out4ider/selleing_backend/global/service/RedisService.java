@@ -14,11 +14,26 @@ import java.util.Set;
 public class RedisService {
     private final RedisTemplate<String, Byte> stringByteRedisTemplate;
     private final RedisTemplate<String, Long> stringLongRedisTemplate;
+    private final RedisTemplate<Long, String> longStringRedisTemplate;
     private final Duration expiredTime = Duration.ofHours(2);
 
     //common
     public boolean checkValueExisting(String keyName, Long userId) {
         return Boolean.TRUE.equals(stringLongRedisTemplate.opsForSet().isMember(keyName, userId));
+    }
+
+    //jwt
+    public void setToken(Long userId, String token, long expiredTime){
+        longStringRedisTemplate.opsForValue().set(userId, token);
+        longStringRedisTemplate.expire(userId, Duration.ofMillis(expiredTime));
+    }
+
+    public void deleteToken(Long userId){
+        longStringRedisTemplate.delete(userId);
+    }
+
+    public String getToken(Long userId){
+        return longStringRedisTemplate.opsForValue().get(userId);
     }
 
     //schedule redis service

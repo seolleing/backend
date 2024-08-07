@@ -1,5 +1,6 @@
 package com.out4ider.selleing_backend.global.security;
 
+import com.out4ider.selleing_backend.global.service.RedisService;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -13,11 +14,11 @@ import java.util.Date;
 @Component
 public class JWTUtil {
     private final SecretKey secretKey;
-    private final StringRedisTemplate redisTemplate;
+    private final RedisService redisService;
 
-    public JWTUtil(@Value("${spring.jwt.secret}")String secret, StringRedisTemplate redisTemplate) {
+    public JWTUtil(@Value("${spring.jwt.secret}")String secret, StringRedisTemplate redisTemplate, RedisService redisService) {
         this.secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
-        this.redisTemplate = redisTemplate;
+        this.redisService = redisService;
     }
     public Long getUserId(String token) {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("userId", Long.class);
@@ -47,11 +48,11 @@ public class JWTUtil {
                 .compact();
     }
 
-//    public void deleteToken(Long userId) {
-//        redisTemplate.delete(userId);
-//    }
+    public void deleteToken(Long userId) {
+        redisService.deleteToken(userId);
+    }
 
-    public void putToken(String userId, String token) {
-        redisTemplate.opsForValue().set(userId, token);
+    public void setToken(Long userId, String token, Long expiredTime) {
+        redisService.setToken(userId,token, expiredTime);
     }
 }
