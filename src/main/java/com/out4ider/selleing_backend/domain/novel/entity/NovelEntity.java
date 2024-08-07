@@ -35,6 +35,15 @@ public class NovelEntity {
     private List<LikeNovelEntity> likeNovels;
 
 
+    public NovelResponseDto toNovelResponseDto() {
+        return NovelResponseDto.builder()
+                .novelId(this.novelId)
+                .title(this.title)
+                .startSentence(this.startSentence)
+                .likeCount(this.likeNovels.size())
+                .build();
+    }
+
     public NovelResponseDto toNovelResponseDto(int newLikeCount) {
         return NovelResponseDto.builder()
                 .novelId(this.novelId)
