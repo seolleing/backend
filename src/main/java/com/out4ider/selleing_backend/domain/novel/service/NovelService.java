@@ -101,7 +101,6 @@ public class NovelService {
 //    }
 
     private boolean checkLiked(boolean isContainUserId, Long novelId, Long userId) {
-        return isContainUserId && !redisService.checkValueExisting("deleteLikeNovel:" + novelId, userId)
-                || !isContainUserId && redisService.checkValueExisting("newLikeNovel:" + novelId, userId);
+        return isContainUserId || redisService.checkValueExisting("newLikeNovel:" + novelId, userId);
     }
 }

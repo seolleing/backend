@@ -23,38 +23,39 @@ public class RedisService {
     }
 
     //jwt
-    public void setToken(Long userId, String token, long expiredTime){
+    public void setToken(Long userId, String token, long expiredTime) {
         longStringRedisTemplate.opsForValue().set(userId, token);
         longStringRedisTemplate.expire(userId, Duration.ofMillis(expiredTime));
     }
 
-    public void deleteToken(Long userId){
+    public void deleteToken(Long userId) {
         longStringRedisTemplate.delete(userId);
     }
 
-    public String getToken(Long userId){
+    public String getToken(Long userId) {
         return longStringRedisTemplate.opsForValue().get(userId);
     }
 
     //schedule redis service
     public void removeAllKey(Set<String> keyNames) {
+
         stringLongRedisTemplate.delete(keyNames);
     }
 
     public Set<String> getAllKey(String keyName) {
+
         return stringLongRedisTemplate.keys(keyName);
     }
 
     public Set<Long> getAllValue(String keyName) {
+
         return stringLongRedisTemplate.opsForSet().members(keyName);
     }
 
     //like redis service
-    public void removeValue(String keyName, Long userId) {
-        stringLongRedisTemplate.opsForSet().remove(keyName, userId);
-    }
 
     public void addValue(String keyName, Long userId) {
+
         stringLongRedisTemplate.opsForSet().add(keyName, userId);
     }
 

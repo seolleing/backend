@@ -19,12 +19,6 @@ public class LikeController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/novels/{novelId}")
-    public ResponseEntity<?> unlikeNovel(@PathVariable(name = "novelId") Long id, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails){
-        likeService.unlikeNovel(id, simpleCustomUserDetails.getUserId());
-        return ResponseEntity.ok().build();
-    }
-
     @PostMapping("/comments/{commentId}")
     public ResponseEntity<?> likeComment(@PathVariable(name = "commentId") Long id, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails){
         likeService.likeComment(id,simpleCustomUserDetails.getUserId());

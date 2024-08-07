@@ -29,19 +29,12 @@ public class LikeService {
 
     @Transactional
     public void likeNovel(Long novelId, Long userId) {
-        if (redisService.checkValueExisting("deleteLikeNovel:" + novelId, userId)) {
-            redisService.removeValue("deleteLikeNovel:" + novelId, userId);
+        if (redisService.checkValueExisting("newLikeNovel:" + novelId, userId)
+                ||likeNovelRepository.findLikeNovelWithNovelIdAndUserId(novelId,userId).isPresent()) {
+            throw new AlreadyDoingException(ExceptionEnum.ALREADYDOING.ordinal(), "이미 좋아요를 누르셨습니다.", HttpStatus.FORBIDDEN);
         } else {
             redisService.addValue("newLikeNovel:" + novelId, userId);
         }
-    }
-
-    @Transactional
-    public void unlikeNovel(Long novelId, Long userId) {
-        if (redisService.checkValueExisting("newLikeNovel:" + novelId, userId)) {
-            redisService.removeValue("newLikeNovel:" + novelId, userId);
-        }
-        redisService.addValue("deleteLikeNovel:" + novelId, userId);
     }
 
     @Transactional
@@ -97,30 +90,6 @@ public class LikeService {
                 likeCommentRepository.batchInsert(commentIdAndUserIdList);
             }
             redisService.removeAllKey(newCommentIds);
-        }
-    }
-
-    @Scheduled(fixedDelay = 3600000, initialDelay = 3600000)
-    @Transactional
-    public void deleteLikeNovelInDB() {
-        System.out.println("run");
-        Set<String> deleteNovelIds = redisService.getAllKey("deleteLikeNovel:*");
-        List<Pair<Long, Long>> novelIdAndUserIdList = new ArrayList<>(batchSize);
-        if (deleteNovelIds != null) {
-            Set<Long> novelIds = deleteNovelIds.stream().map(novelId -> Long.valueOf(novelId.split(":")[1])).collect(Collectors.toSet());
-            for (Long novelId : novelIds) {
-                Set<Long> userIds = redisService.getAllValue("deleteLikeNovel:" + novelId);
-                for (Long userId : userIds) {
-                    novelIdAndUserIdList.add(Pair.of(novelId, userId));
-                    if (novelIdAndUserIdList.size() == batchSize) {
-                        likeNovelRepository.batchDelete(novelIdAndUserIdList);
-                    }
-                }
-            }
-            if (!novelIdAndUserIdList.isEmpty()) {
-                likeNovelRepository.batchDelete(novelIdAndUserIdList);
-            }
-            redisService.removeAllKey(deleteNovelIds);
         }
     }
 }
