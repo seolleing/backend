@@ -1,5 +1,6 @@
 package com.out4ider.selleing_backend.domain.novel.entity;
 
+import com.out4ider.selleing_backend.domain.bookmark.entity.BookmarkEntity;
 import com.out4ider.selleing_backend.domain.like.entity.LikeNovelEntity;
 import com.out4ider.selleing_backend.domain.novel.dto.NovelResponseDto;
 import jakarta.persistence.*;
@@ -34,6 +35,8 @@ public class NovelEntity {
     @OneToMany(mappedBy = "novel", fetch = FetchType.LAZY)
     private List<LikeNovelEntity> likeNovels;
 
+    @OneToMany(mappedBy = "novel", fetch = FetchType.LAZY)
+    private List<BookmarkEntity> bookmarks;
 
     public NovelResponseDto toNovelResponseDto() {
         return NovelResponseDto.builder()
