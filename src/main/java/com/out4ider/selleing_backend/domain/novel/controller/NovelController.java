@@ -21,32 +21,40 @@ public class NovelController {
     private final NovelService novelService;
 
     @PostMapping
-    public ResponseEntity<?> saveNovel(@RequestBody NovelRequestDto novelRequestDto){
+    public ResponseEntity<?> saveNovel(@RequestBody NovelRequestDto novelRequestDto) {
         Long novelId = novelService.save(novelRequestDto);
         return ResponseEntity.ok().body(novelId);
     }
 
     @GetMapping
-    public ResponseEntity<?> getNovels(@RequestParam(name="page", required = false, defaultValue = "0") int page,
-                                       @RequestParam(name = "orderby", required = false, defaultValue = "novelId") String orderby){
-        List<NovelResponseDto> novelResponseDtos = novelService.getSome(page, orderby);
+    public ResponseEntity<?> getNovelsOrderByNovelId(
+            @RequestParam(name = "lastId", required = false) Long lastId) {
+        List<NovelResponseDto> novelResponseDtos = novelService.getSome(lastId);
+        return ResponseEntity.ok().body(novelResponseDtos);
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getNovelsOrderByLikeCount(
+            @RequestParam(name = "likeCount", required = false) Integer likeCount,
+            @RequestParam(name = "lastId", required = false) Long lastId) {
+        List<NovelResponseDto> novelResponseDtos = novelService.getSome2(likeCount, lastId);
         return ResponseEntity.ok().body(novelResponseDtos);
     }
 
     @GetMapping("/{novelId}")
-    public ResponseEntity<?> getNovel(@PathVariable(name = "novelId") Long novelId, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails){
+    public ResponseEntity<?> getNovel(@PathVariable(name = "novelId") Long novelId, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
         NovelTotalResponseDto novelTotalResponseDtos = novelService.get(novelId, simpleCustomUserDetails.getUserId());
         return ResponseEntity.ok().body(novelTotalResponseDtos);
     }
 
     @PatchMapping("/{novelId}")
-    public ResponseEntity<?> report(@PathVariable(name="novelId") Long novelId){
+    public ResponseEntity<?> report(@PathVariable(name = "novelId") Long novelId) {
         novelService.updateReport(novelId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/bookmarks")
-    public ResponseEntity<?> getBookmarks(@RequestParam(name="page", required = false, defaultValue = "0") int page, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails){
+    public ResponseEntity<?> getBookmarks(@RequestParam(name = "page", required = false, defaultValue = "0") int page, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
         List<NovelResponseDto> novelResponseDtos = novelService.getBookmarks(page, simpleCustomUserDetails.getUserId());
         return ResponseEntity.ok().body(novelResponseDtos);
     }

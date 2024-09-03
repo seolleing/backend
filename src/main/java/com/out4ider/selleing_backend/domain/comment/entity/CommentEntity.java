@@ -1,11 +1,12 @@
 package com.out4ider.selleing_backend.domain.comment.entity;
 
-import com.out4ider.selleing_backend.domain.comment.dto.CommentResponseDto;
 import com.out4ider.selleing_backend.domain.like.entity.LikeCommentEntity;
 import com.out4ider.selleing_backend.domain.novel.entity.NovelEntity;
 import com.out4ider.selleing_backend.domain.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@DynamicInsert
 public class CommentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,12 +38,11 @@ public class CommentEntity {
     @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY)
     private List<LikeCommentEntity> likeComments;
 
-    public CommentResponseDto toCommentResponseDto(int newLikeCount) {
-        return CommentResponseDto.builder()
-                .commentId(this.id)
-                .content(this.content)
-                .nickname(this.user.getNickname())
-                .likeCount(this.likeComments.size()+newLikeCount)
-                .build();
+    @Column(name = "like_count")
+    @ColumnDefault("0")
+    private int likeCount;
+
+    public void incrementLikeCount(){
+        this.likeCount+=1;
     }
 }

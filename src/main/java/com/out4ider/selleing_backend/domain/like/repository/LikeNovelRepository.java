@@ -7,10 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 import java.util.Optional;
 
-public interface LikeNovelRepository extends JpaRepository<LikeNovelEntity, Long>, CustomLikeNovelRepository {
-    @Query("select l from LikeNovelEntity l join fetch l.user where l.novel.novelId=?1")
-    List<LikeNovelEntity> findLikeNovel(Long novelId);
-
-    @Query("select l from LikeNovelEntity l where l.novel.novelId=?1 and l.user.userId=?1")
-    Optional<LikeNovelEntity> findLikeNovelWithNovelIdAndUserId(Long novelId, Long userId);
+public interface LikeNovelRepository extends JpaRepository<LikeNovelEntity, Long>, CustomeLikeNovelRepository {
+    Optional<LikeNovelEntity> findByNovel_NovelIdAndUser_UserId(Long novelId, Long userId);
 }

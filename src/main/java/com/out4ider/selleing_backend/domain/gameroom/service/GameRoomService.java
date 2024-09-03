@@ -51,7 +51,7 @@ public class GameRoomService {
 
     public List<GameRoomInquiryResponseDto> getSome(int page) {
         Pageable pageable = PageRequest.of(page, 10, Sort.by("id").descending());
-        return gameRoomRepository.findAllByIsStarted(pageable).stream().map((gameRoomEntity) -> {
+        return gameRoomRepository.findByIsStartedFalse(pageable).stream().map((gameRoomEntity) -> {
             byte currentHeadCount = redisService.getGameRoomHeadCount(gameRoomEntity.getId());
             return gameRoomEntity.toGameRoomInquiryResponseDto(currentHeadCount);
         }).toList();
@@ -76,7 +76,7 @@ public class GameRoomService {
 
     @Transactional
     public GameRoomInquiryResponseDto getFriendRoom(String code) {
-        GameRoomEntity gameRoomEntity = gameRoomRepository.findByCode(code).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "방이 꽉찼습니다.", HttpStatus.LOCKED));
+        GameRoomEntity gameRoomEntity = gameRoomRepository.findByIsStartedFalseAndCode(code).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "방이 꽉찼습니다.", HttpStatus.LOCKED));
         return joinRoom(gameRoomEntity);
     }
 

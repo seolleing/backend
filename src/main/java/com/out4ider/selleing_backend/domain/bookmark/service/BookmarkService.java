@@ -33,6 +33,6 @@ public class BookmarkService {
 
     @Transactional
     public void unBookmark(Long novelId, Long userId) {
-        bookmarkRepository.deleteBookmarkByNovelIdAndUserId(novelId, userId);
+        bookmarkRepository.deleteByNovel_NovelIdAndUser_UserId(novelId, userId);
     }
 }

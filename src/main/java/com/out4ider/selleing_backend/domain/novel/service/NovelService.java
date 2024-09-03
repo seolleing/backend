@@ -7,7 +7,6 @@ import com.out4ider.selleing_backend.domain.novel.dto.NovelRequestDto;
 import com.out4ider.selleing_backend.domain.novel.dto.NovelResponseDto;
 import com.out4ider.selleing_backend.domain.novel.dto.NovelTotalResponseDto;
 import com.out4ider.selleing_backend.domain.novel.entity.NovelEntity;
-import com.out4ider.selleing_backend.domain.novel.entity.NovelInfoEntity;
 import com.out4ider.selleing_backend.domain.novel.repository.NovelInfoRepository;
 import com.out4ider.selleing_backend.domain.novel.repository.NovelRepository;
 import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
@@ -15,9 +14,6 @@ import com.out4ider.selleing_backend.global.exception.kind.NotFoundElementExcept
 import com.out4ider.selleing_backend.global.service.RedisService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -46,28 +42,19 @@ public class NovelService {
         return novelEntity.getNovelId();
     }
 
-    public List<NovelResponseDto> getSome(int page, String orderby) {
-        Pageable pageable = null;
-        List<NovelResponseDto> novelResponseDtos = null;
-        if (orderby.equals("novelId")) {
-            pageable = PageRequest.of(page, 10, Sort.by(orderby).descending());
-            novelResponseDtos = novelRepository.findAllWithNovelId(pageable).stream().map(novelEntity -> {
-                int newLikeCount = redisService.getSize("newLikeNovel:" + novelEntity.getNovelId());
-                return novelEntity.toNovelResponseDto(newLikeCount);
-            }).toList();
-        } else {
-            pageable = PageRequest.of(page, 10);
-            novelResponseDtos = novelRepository.findAllWithLikeNovel(pageable)
-                    .stream().map(NovelEntity::toNovelResponseDto).toList();
-        }
-        return novelResponseDtos;
+    public List<NovelResponseDto> getSome(Long lastId) {
+        return novelRepository.findAllOrderByNovelId(lastId);
+    }
+
+    public List<NovelResponseDto> getSome2(Integer likeCount,Long lastId) {
+        return novelRepository.findAllOrderByLikeCount(likeCount,lastId);
     }
 
     public NovelTotalResponseDto get(Long novelId, Long userId) {
         int likeCount;
         boolean isContainUserId;
         if (redisService.alreadyHasOldLikeNovelKey(novelId)) {
-            List<LikeNovelEntity> likeNovelEntities = likeNovelRepository.findLikeNovel(novelId);
+            List<LikeNovelEntity> likeNovelEntities = likeNovelRepository.findByNovelIdWithUser(novelId);
             List<Long> userIds = likeNovelEntities
                     .stream().map(likeNovelEntity -> likeNovelEntity.getUser().getUserId()).toList();
             isContainUserId = userIds.contains(userId);
@@ -78,11 +65,8 @@ public class NovelService {
             likeCount = redisService.getSize("oldLikeNovel:" + novelId);
         }
         return new NovelTotalResponseDto(checkLiked(isContainUserId,novelId,userId), likeCount + redisService.getSize("newLikeNovel:" + novelId),
-                novelInfoRepository.findByNovelId(novelId).stream().map(NovelInfoEntity::toNovelInfoResponseDto).toList(),
-                commentRepository.findByNovelId(novelId).stream().map(commentEntity -> {
-                    int newLikeCount = redisService.getSize("newLikeComment:" + commentEntity.getId());
-                    return commentEntity.toCommentResponseDto(newLikeCount);
-                }).toList());
+                novelInfoRepository.findByNovelId(novelId),
+                commentRepository.findByNovelId(novelId));
     }
 
     @Transactional
@@ -93,11 +77,7 @@ public class NovelService {
     }
 
     public List<NovelResponseDto> getBookmarks(int page, Long userId) {
-        Pageable pageable = PageRequest.of(page, 10, Sort.by("novelId").descending());
-        return novelRepository.findAllWithBookmark(pageable, userId).stream().map(novelEntity -> {
-            int newLikeCount = redisService.getSize("newLikeNovel:" + novelEntity.getNovelId());
-            return novelEntity.toNovelResponseDto(newLikeCount);
-        }).toList();
+        return null;
     }
 
     private boolean checkLiked(boolean isContainUserId, Long novelId, Long userId) {

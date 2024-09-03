@@ -2,10 +2,11 @@ package com.out4ider.selleing_backend.domain.novel.entity;
 
 import com.out4ider.selleing_backend.domain.bookmark.entity.BookmarkEntity;
 import com.out4ider.selleing_backend.domain.like.entity.LikeNovelEntity;
-import com.out4ider.selleing_backend.domain.novel.dto.NovelResponseDto;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@DynamicInsert
 public class NovelEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,21 +40,11 @@ public class NovelEntity {
     @OneToMany(mappedBy = "novel", fetch = FetchType.LAZY)
     private List<BookmarkEntity> bookmarks;
 
-    public NovelResponseDto toNovelResponseDto() {
-        return NovelResponseDto.builder()
-                .novelId(this.novelId)
-                .title(this.title)
-                .startSentence(this.startSentence)
-                .likeCount(this.likeNovels.size())
-                .build();
-    }
+    @Column(name = "like_count")
+    @ColumnDefault("0")
+    private int likeCount;
 
-    public NovelResponseDto toNovelResponseDto(int newLikeCount) {
-        return NovelResponseDto.builder()
-                .novelId(this.novelId)
-                .title(this.title)
-                .startSentence(this.startSentence)
-                .likeCount(this.likeNovels.size()+newLikeCount)
-                .build();
+    public void incrementLikeCount() {
+        this.likeCount+=1;
     }
 }

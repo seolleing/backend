@@ -1,12 +1,15 @@
 package com.out4ider.selleing_backend.domain.comment.controller;
 
 import com.out4ider.selleing_backend.domain.comment.dto.CommentRequestDto;
+import com.out4ider.selleing_backend.domain.comment.dto.CommentResponseDto;
 import com.out4ider.selleing_backend.domain.comment.service.CommentService;
 import com.out4ider.selleing_backend.global.security.SimpleCustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/comments")
@@ -32,4 +35,9 @@ public class CommentController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/{noveld}")
+    public ResponseEntity<?> getComments(@PathVariable(name = "novelId") Long novelId, @RequestParam(name = "lastCommentId") Long lastCommentId){
+        List<CommentResponseDto> commentResponseDtos = commentService.getMore(novelId,lastCommentId);
+        return ResponseEntity.ok().body(commentResponseDtos);
+    }
 }

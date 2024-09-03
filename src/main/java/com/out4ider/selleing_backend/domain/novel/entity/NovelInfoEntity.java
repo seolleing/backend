@@ -1,6 +1,5 @@
 package com.out4ider.selleing_backend.domain.novel.entity;
 
-import com.out4ider.selleing_backend.domain.novel.dto.NovelInfoResponseDto;
 import com.out4ider.selleing_backend.domain.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -31,10 +30,4 @@ public class NovelInfoEntity {
     @Column(name = "content")
     private String content;
 
-    public NovelInfoResponseDto toNovelInfoResponseDto() {
-        return NovelInfoResponseDto.builder()
-                .nickname(user.getNickname())
-                .content(this.content)
-                .build();
-    }
 }
