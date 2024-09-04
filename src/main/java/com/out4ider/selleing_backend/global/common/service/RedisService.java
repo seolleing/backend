@@ -1,4 +1,4 @@
-package com.out4ider.selleing_backend.global.service;
+package com.out4ider.selleing_backend.global.common.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

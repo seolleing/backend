@@ -4,6 +4,7 @@ import com.out4ider.selleing_backend.domain.gameroom.dto.GameRoomInquiryResponse
 import com.out4ider.selleing_backend.domain.gameroom.dto.GameRoomRequestDto;
 import com.out4ider.selleing_backend.domain.gameroom.dto.GameRoomSaveResponseDto;
 import com.out4ider.selleing_backend.domain.gameroom.service.GameRoomService;
+import com.out4ider.selleing_backend.global.common.dto.ResponseDto;
 import com.out4ider.selleing_backend.global.security.SimpleCustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,19 +22,19 @@ public class GameRoomController {
     @PostMapping
     public ResponseEntity<?> saveGameRoom(@RequestBody GameRoomRequestDto gameRoomRequestDto, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
         GameRoomSaveResponseDto gameRoomSaveResponseDto = gameRoomService.save(gameRoomRequestDto, simpleCustomUserDetails.getUserId());
-        return ResponseEntity.ok().body(gameRoomSaveResponseDto);
+        return ResponseDto.onSuccess(gameRoomSaveResponseDto);
     }
 
     @GetMapping
     public ResponseEntity<?> getGameRooms(@RequestParam(name = "page", required = false, defaultValue = "0") int page) {
         List<GameRoomInquiryResponseDto> gameRoomInquiryResponseDtos = gameRoomService.getSome(page);
-        return ResponseEntity.ok().body(gameRoomInquiryResponseDtos);
+        return ResponseDto.onSuccess(gameRoomInquiryResponseDtos);
     }
 
     @DeleteMapping("/{roomId}")
     public ResponseEntity<?> deleteGameRoom(@PathVariable(name = "roomId") Long roomId, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
         gameRoomService.delete(roomId, simpleCustomUserDetails.getUserId());
-        return ResponseEntity.ok().build();
+        return ResponseDto.onSuccess();
     }
 
 //    @GetMapping("/random")
@@ -45,25 +46,25 @@ public class GameRoomController {
     @GetMapping("/friend")
     public ResponseEntity<?> getFriendRoom(@RequestParam("code") String code) {
         GameRoomInquiryResponseDto gameRoomInquiryResponseDto = gameRoomService.getFriendRoom(code);
-        return ResponseEntity.ok().body(gameRoomInquiryResponseDto);
+        return ResponseDto.onSuccess(gameRoomInquiryResponseDto);
     }
 
     @GetMapping("/{roomId}")
     public ResponseEntity<?> joinRoom(@PathVariable(name = "roomId") Long roomId) {
         GameRoomInquiryResponseDto gameRoomInquiryResponseDto = gameRoomService.getRoom(roomId);
-        return ResponseEntity.ok().body(gameRoomInquiryResponseDto);
+        return ResponseDto.onSuccess(gameRoomInquiryResponseDto);
     }
 
     @PostMapping("/{roomId}")
     public ResponseEntity<?> leaveRoom(@PathVariable(name = "roomId") Long roomId) {
         gameRoomService.leave(roomId);
-        return ResponseEntity.ok().build();
+        return ResponseDto.onSuccess();
     }
 
     @PutMapping("/{roomId}")
     public ResponseEntity<?> updateRoom(@PathVariable(name = "roomId") Long roomId,
                                         @RequestBody GameRoomRequestDto gameRoomRequestDto, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
         gameRoomService.update(roomId, gameRoomRequestDto, simpleCustomUserDetails.getUserId());
-        return ResponseEntity.ok().build();
+        return ResponseDto.onSuccess();
     }
 }

@@ -1,7 +1,7 @@
 package com.out4ider.selleing_backend.global.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.out4ider.selleing_backend.global.exception.ExceptionResponse;
+import com.out4ider.selleing_backend.global.exception.ExceptionBody;
 import com.out4ider.selleing_backend.global.exception.kind.AccessTokenExpiredException;
 import com.out4ider.selleing_backend.global.exception.kind.CustomException;
 import com.out4ider.selleing_backend.global.exception.kind.FailedLoginException;
@@ -32,8 +32,8 @@ public class ExceptionHandleFilter extends OncePerRequestFilter {
 
     private void setExceptionResponse(HttpServletResponse response, CustomException exception) throws IOException {
         response.setStatus(exception.getStatusCode().value());
-        ExceptionResponse exceptionResponse = new ExceptionResponse(exception.getCode(), exception.getMessage());
-        String jsonResponse = mapper.writeValueAsString(exceptionResponse);
+        ExceptionBody exceptionBody = new ExceptionBody(exception.getCode(), exception.getMessage());
+        String jsonResponse = mapper.writeValueAsString(exceptionBody);
         response.getWriter().write(jsonResponse);
     }
 }

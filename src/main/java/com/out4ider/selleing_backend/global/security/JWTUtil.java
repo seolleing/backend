@@ -1,6 +1,6 @@
 package com.out4ider.selleing_backend.global.security;
 
-import com.out4ider.selleing_backend.global.service.RedisService;
+import com.out4ider.selleing_backend.global.common.service.RedisService;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;

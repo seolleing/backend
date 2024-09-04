@@ -3,6 +3,7 @@ package com.out4ider.selleing_backend.domain.comment.controller;
 import com.out4ider.selleing_backend.domain.comment.dto.CommentRequestDto;
 import com.out4ider.selleing_backend.domain.comment.dto.CommentResponseDto;
 import com.out4ider.selleing_backend.domain.comment.service.CommentService;
+import com.out4ider.selleing_backend.global.common.dto.ResponseDto;
 import com.out4ider.selleing_backend.global.security.SimpleCustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,24 +21,24 @@ public class CommentController {
     @PostMapping
     public ResponseEntity<?> saveComment(@RequestBody CommentRequestDto commentRequestDto, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
         Long commentId = commentService.save(commentRequestDto, simpleCustomUserDetails.getUserId());
-        return ResponseEntity.ok().body(commentId);
+        return ResponseDto.onSuccess(commentId);
     }
 
     @PutMapping("/{commentId}")
     public ResponseEntity<?> updateComment(@PathVariable(name = "commentId") Long commentId, @RequestParam(name = "content") String content, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
         commentService.update(commentId, content, simpleCustomUserDetails.getUserId());
-        return ResponseEntity.ok().build();
+        return ResponseDto.onSuccess();
     }
 
     @DeleteMapping("/{commentId}")
     public ResponseEntity<?> deleteComment(@PathVariable(name = "commentId") Long commentId, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
         commentService.delete(commentId, simpleCustomUserDetails.getUserId());
-        return ResponseEntity.ok().build();
+        return ResponseDto.onSuccess();
     }
 
     @GetMapping("/{noveld}")
     public ResponseEntity<?> getComments(@PathVariable(name = "novelId") Long novelId, @RequestParam(name = "lastCommentId") Long lastCommentId){
         List<CommentResponseDto> commentResponseDtos = commentService.getMore(novelId,lastCommentId);
-        return ResponseEntity.ok().body(commentResponseDtos);
+        return ResponseDto.onSuccess(commentResponseDtos);
     }
 }

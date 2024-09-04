@@ -12,7 +12,7 @@ import com.out4ider.selleing_backend.domain.user.repository.UserRepository;
 import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
 import com.out4ider.selleing_backend.global.exception.kind.NotAuthorizedException;
 import com.out4ider.selleing_backend.global.exception.kind.NotFoundElementException;
-import com.out4ider.selleing_backend.global.service.RedisService;
+import com.out4ider.selleing_backend.global.common.service.RedisService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

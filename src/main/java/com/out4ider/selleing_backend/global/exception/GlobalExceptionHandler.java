@@ -1,5 +1,6 @@
 package com.out4ider.selleing_backend.global.exception;
 
+import com.out4ider.selleing_backend.global.common.dto.ResponseDto;
 import com.out4ider.selleing_backend.global.exception.kind.NotAuthorizedException;
 import com.out4ider.selleing_backend.global.exception.kind.NotFoundElementException;
 import org.springframework.http.HttpStatus;
@@ -13,25 +14,24 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ExceptionResponse> handleRuntimeException(RuntimeException ex) {
-        ExceptionResponse body = new ExceptionResponse(ExceptionEnum.UNHANDLED.ordinal(), ex.getMessage());
+    public ResponseEntity<ExceptionBody> handleRuntimeException(RuntimeException ex) {
+        ExceptionBody body = new ExceptionBody(ExceptionEnum.UNHANDLED.ordinal(), ex.getMessage());
         return this.handleExceptionInternal(body, HttpStatus.LOCKED);
     }
 
     @ExceptionHandler(NotFoundElementException.class)
-    public ResponseEntity<ExceptionResponse> handleNotFoundElementException(NotFoundElementException ex) {
-        ExceptionResponse body = new ExceptionResponse(ex.getCode(), ex.getMessage());
+    public ResponseEntity<ExceptionBody> handleNotFoundElementException(NotFoundElementException ex) {
+        ExceptionBody body = new ExceptionBody(ex.getCode(), ex.getMessage());
         return this.handleExceptionInternal(body, ex.getStatusCode());
     }
 
     @ExceptionHandler(NotAuthorizedException.class)
-    public ResponseEntity<ExceptionResponse> handleNotAuthorizedException(NotAuthorizedException ex) {
-        ExceptionResponse body = new ExceptionResponse(ex.getCode(), ex.getMessage());
+    public ResponseEntity<ExceptionBody> handleNotAuthorizedException(NotAuthorizedException ex) {
+        ExceptionBody body = new ExceptionBody(ex.getCode(), ex.getMessage());
         return this.handleExceptionInternal(body, ex.getStatusCode());
     }
 
-    private ResponseEntity<ExceptionResponse> handleExceptionInternal(ExceptionResponse body, HttpStatusCode statusCode) {
-        return ResponseEntity.status(statusCode)
-                .body(body);
+    private ResponseEntity<ExceptionBody> handleExceptionInternal(ExceptionBody body, HttpStatusCode statusCode) {
+        return ResponseDto.onFailed(statusCode, body);
     }
 }

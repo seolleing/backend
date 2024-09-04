@@ -2,7 +2,7 @@ package com.out4ider.selleing_backend.global.security;
 
 import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
 import com.out4ider.selleing_backend.global.exception.kind.InvalidLoginTokenException;
-import com.out4ider.selleing_backend.global.service.RedisService;
+import com.out4ider.selleing_backend.global.common.service.RedisService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

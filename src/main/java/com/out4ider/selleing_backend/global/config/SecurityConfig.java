@@ -2,7 +2,7 @@ package com.out4ider.selleing_backend.global.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.out4ider.selleing_backend.global.security.*;
-import com.out4ider.selleing_backend.global.service.RedisService;
+import com.out4ider.selleing_backend.global.common.service.RedisService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
