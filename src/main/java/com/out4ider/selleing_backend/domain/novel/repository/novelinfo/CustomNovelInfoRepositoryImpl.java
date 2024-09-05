@@ -1,4 +1,4 @@
-package com.out4ider.selleing_backend.domain.novel.repository;
+package com.out4ider.selleing_backend.domain.novel.repository.novelinfo;
 
 import com.out4ider.selleing_backend.domain.novel.dto.NovelInfoRequestDto;
 import com.out4ider.selleing_backend.domain.novel.dto.NovelInfoResponseDto;
@@ -23,13 +23,13 @@ public class CustomNovelInfoRepositoryImpl implements CustomNovelInfoRepository 
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public void batchInsert(List<NovelInfoRequestDto> novelInfoRequestDtos, Long novelId) {
+    public void batchInsert(Long novelId, List<NovelInfoRequestDto> novelInfoRequestDtos) {
         String sql = "INSERT INTO novel_info(content, novel_id, user_id) VALUES(?,?,?)";
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 NovelInfoRequestDto novelInfoRequestDto = novelInfoRequestDtos.get(i);
-                ps.setString(1,novelInfoRequestDto.getContent());
+                ps.setString(1, novelInfoRequestDto.getContent());
                 ps.setLong(2, novelId);
                 ps.setLong(3, novelInfoRequestDto.getUserId());
             }
@@ -42,7 +42,7 @@ public class CustomNovelInfoRepositoryImpl implements CustomNovelInfoRepository 
     }
 
     @Override
-    public List<NovelInfoResponseDto> findByNovelId(Long novelId) {
+    public List<NovelInfoResponseDto> findByNovelIdWithUser(Long novelId) {
         return jpaQueryFactory
                 .select(new QNovelInfoResponseDto(
                         userEntity.nickname,

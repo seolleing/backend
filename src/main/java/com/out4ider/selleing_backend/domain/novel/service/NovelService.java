@@ -1,17 +1,18 @@
 package com.out4ider.selleing_backend.domain.novel.service;
 
+import com.out4ider.selleing_backend.domain.bookmark.repository.BookmarkRepository;
+import com.out4ider.selleing_backend.domain.comment.dto.CommentResponseDto;
 import com.out4ider.selleing_backend.domain.comment.repository.CommentRepository;
-import com.out4ider.selleing_backend.domain.like.entity.LikeNovelEntity;
-import com.out4ider.selleing_backend.domain.like.repository.LikeNovelRepository;
+import com.out4ider.selleing_backend.domain.like.repository.likenovel.LikeNovelRepository;
+import com.out4ider.selleing_backend.domain.novel.dto.NovelInfoResponseDto;
 import com.out4ider.selleing_backend.domain.novel.dto.NovelRequestDto;
 import com.out4ider.selleing_backend.domain.novel.dto.NovelResponseDto;
 import com.out4ider.selleing_backend.domain.novel.dto.NovelTotalResponseDto;
 import com.out4ider.selleing_backend.domain.novel.entity.NovelEntity;
-import com.out4ider.selleing_backend.domain.novel.repository.NovelInfoRepository;
-import com.out4ider.selleing_backend.domain.novel.repository.NovelRepository;
+import com.out4ider.selleing_backend.domain.novel.repository.novel.NovelRepository;
+import com.out4ider.selleing_backend.domain.novel.repository.novelinfo.NovelInfoRepository;
 import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
 import com.out4ider.selleing_backend.global.exception.kind.NotFoundElementException;
-import com.out4ider.selleing_backend.global.common.service.RedisService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,60 +28,49 @@ public class NovelService {
     private final CommentRepository commentRepository;
     private final NovelInfoRepository novelInfoRepository;
     private final LikeNovelRepository likeNovelRepository;
-    private final RedisService redisService;
+    private final BookmarkRepository bookmarkRepository;
 
     @Transactional
-    public Long save(NovelRequestDto novelRequestDto) {
+    public Long saveNovel(NovelRequestDto novelRequestDto) {
         NovelEntity novelEntity = NovelEntity.builder()
                 .title(novelRequestDto.getTitle())
                 .startSentence(novelRequestDto.getStartSentence())
-                .likeNovels(new ArrayList<>())
-                .isReported(false)
+                .likeNovels(new ArrayList<>()).isReported(false)
                 .build();
         novelRepository.save(novelEntity);
-        novelInfoRepository.batchInsert(novelRequestDto.getNovelInfoRequestDtos(), novelEntity.getNovelId());
+        novelInfoRepository.batchInsert(novelEntity.getNovelId(),
+                novelRequestDto.getNovelInfoRequestDtos());
         return novelEntity.getNovelId();
     }
 
-    public List<NovelResponseDto> getSome(Long lastId) {
-        return novelRepository.findAllOrderByNovelId(lastId);
+    public List<NovelResponseDto> findNovelsByLatest(Long lastId) {
+        return novelRepository.findOrderByNovelId(lastId);
     }
 
-    public List<NovelResponseDto> getSome2(Integer likeCount,Long lastId) {
-        return novelRepository.findAllOrderByLikeCount(likeCount,lastId);
+    public List<NovelResponseDto> findNovelsByPopular(Long lastId, Integer likeCount) {
+        return novelRepository.findOrderByLikeCount(lastId, likeCount);
     }
 
-    public NovelTotalResponseDto get(Long novelId, Long userId) {
-        int likeCount;
-        boolean isContainUserId;
-        if (redisService.alreadyHasOldLikeNovelKey(novelId)) {
-            List<LikeNovelEntity> likeNovelEntities = likeNovelRepository.findByNovelIdWithUser(novelId);
-            List<Long> userIds = likeNovelEntities
-                    .stream().map(likeNovelEntity -> likeNovelEntity.getUser().getUserId()).toList();
-            isContainUserId = userIds.contains(userId);
-            likeCount = likeNovelEntities.size();
-            redisService.addOldLikeNovel(novelId, userIds.toArray(new Long[0]));
-        } else {
-            isContainUserId = redisService.checkValueExisting("oldLikeNovel:" + novelId, userId);
-            likeCount = redisService.getSize("oldLikeNovel:" + novelId);
-        }
-        return new NovelTotalResponseDto(checkLiked(isContainUserId,novelId,userId), likeCount + redisService.getSize("newLikeNovel:" + novelId),
-                novelInfoRepository.findByNovelId(novelId),
-                commentRepository.findByNovelId(novelId));
+    public NovelTotalResponseDto findNovel(Long novelId, Long userId) {
+        boolean isLiked = likeNovelRepository.existsByNovel_NovelIdAndUser_UserId(novelId, userId);
+        boolean isBookmarked = bookmarkRepository.existsByNovel_NovelIdAndUser_UserId(novelId, userId);
+        int likeCount = novelRepository.findLikeCountByNovelId(novelId);
+        List<NovelInfoResponseDto> novelInfoResponseDtos = novelInfoRepository.findByNovelIdWithUser(novelId);
+        List<CommentResponseDto> commentResponseDtos = commentRepository.findOrderByCommentId(novelId);
+        return new NovelTotalResponseDto(isLiked, isBookmarked, likeCount,
+                novelInfoResponseDtos, commentResponseDtos);
     }
 
     @Transactional
     public void updateReport(Long novelId) {
-        NovelEntity novelEntity = novelRepository.findById(novelId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+        NovelEntity novelEntity = novelRepository.findById(novelId)
+                .orElseThrow(() -> new NotFoundElementException(
+                        ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         novelEntity.setReported(true);
         novelRepository.save(novelEntity);
     }
 
-    public List<NovelResponseDto> getBookmarks(int page, Long userId) {
-        return null;
-    }
-
-    private boolean checkLiked(boolean isContainUserId, Long novelId, Long userId) {
-        return isContainUserId || redisService.checkValueExisting("newLikeNovel:" + novelId, userId);
+    public List<NovelResponseDto> findBookmarksByLatest(Long lastId, Long userId) {
+        return novelRepository.findOrderByNovelIdInBookmark(lastId, userId);
     }
 }

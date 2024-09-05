@@ -16,7 +16,6 @@ import static com.out4ider.selleing_backend.domain.user.entity.QUserEntity.userE
 
 @RequiredArgsConstructor
 public class CustomCommentRepositoryImpl implements CustomCommentRepository {
-
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
@@ -32,7 +31,7 @@ public class CustomCommentRepositoryImpl implements CustomCommentRepository {
     }
 
     @Override
-    public List<CommentResponseDto> findByNovelId(Long novelId, Long lastCommentId) {
+    public List<CommentResponseDto> findOrderByCommentId(Long novelId, Long lastId) {
         return jpaQueryFactory
                 .select(new QCommentResponseDto(
                         commentEntity.id,
@@ -42,18 +41,18 @@ public class CustomCommentRepositoryImpl implements CustomCommentRepository {
                 ))
                 .from(commentEntity)
                 .join(commentEntity.user, userEntity)
-                .where(commentIdGt(lastCommentId),
+                .where(commentIdGt(lastId),
                         commentEntity.novel.novelId.eq(novelId))
                 .limit(20)
                 .fetch();
     }
 
     @Override
-    public List<CommentResponseDto> findByNovelId(Long novelId){
-        return findByNovelId(novelId,null);
+    public List<CommentResponseDto> findOrderByCommentId(Long novelId) {
+        return findOrderByCommentId(novelId, null);
     }
 
-    private BooleanExpression commentIdGt(Long commentId){
-        return commentId!=null ? commentEntity.id.gt(commentId) : null;
+    private BooleanExpression commentIdGt(Long commentId) {
+        return commentId != null ? commentEntity.id.gt(commentId) : null;
     }
 }

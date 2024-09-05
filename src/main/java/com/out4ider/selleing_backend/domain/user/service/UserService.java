@@ -25,19 +25,20 @@ public class UserService {
         UserEntity userEntity = UserEntity.builder()
                 .email(userRequestDto.getEmail())
                 .encryptedPassword(encryptedPassword)
-                .role("ROLE_USER")
-                .nickname("닉네임")
+                .role("ROLE_USER").nickname("닉네임")
                 .build();
         userRepository.save(userEntity);
     }
 
-    public boolean checkEmail(String email){
+    public boolean checkEmail(String email) {
         return userRepository.existsByEmail(email);
     }
 
     @Transactional
     public void update(Long userId, String nickname) {
-        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundElementException(
+                        ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         userEntity.setNickname(nickname);
         userRepository.save(userEntity);
     }

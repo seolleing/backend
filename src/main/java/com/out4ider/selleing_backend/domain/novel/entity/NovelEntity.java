@@ -29,7 +29,7 @@ public class NovelEntity {
     @Column(name = "start_sentence")
     private String startSentence;
 
-    @Column(name="is_reported")
+    @Column(name = "is_reported")
     @Setter
     private boolean isReported;
 
@@ -45,6 +45,6 @@ public class NovelEntity {
     private int likeCount;
 
     public void incrementLikeCount() {
-        this.likeCount+=1;
+        this.likeCount += 1;
     }
 }

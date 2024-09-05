@@ -30,7 +30,7 @@ public class GameRoomEntity {
     private String title;
 
     @Column(name = "max_head_count")
-    private byte maxHeadCount;
+    private String maxHeadCount;
 
     @Column(name = "game_room_password")
     private String password;
@@ -51,20 +51,17 @@ public class GameRoomEntity {
                 .build();
     }
 
-    public GameRoomInquiryResponseDto toGameRoomInquiryResponseDto(byte currentHeadCount) {
-        return GameRoomInquiryResponseDto.builder()
-                .currentHeadCount(currentHeadCount)
-                .maxHeadCount(this.maxHeadCount)
-                .roomId(this.id)
-                .startSentence(this.startSentence)
-                .title(this.title)
-                .build();
-    }
-
     public void updateGameRoomEntity(GameRoomRequestDto gameRoomRequestDto) {
         this.title = gameRoomRequestDto.getTitle();
-        this.maxHeadCount=gameRoomRequestDto.getMaxHeadCount();
+        this.maxHeadCount = gameRoomRequestDto.getMaxHeadCount();
         this.startSentence = gameRoomRequestDto.getStartSentence();
         this.password = gameRoomRequestDto.getPassword();
+    }
+
+    public GameRoomInquiryResponseDto toGameRoomInquiryResponseDto(String newHeadCount) {
+        return new GameRoomInquiryResponseDto(
+                this.title, this.startSentence,
+                this.id, this.password,
+                this.maxHeadCount, newHeadCount);
     }
 }

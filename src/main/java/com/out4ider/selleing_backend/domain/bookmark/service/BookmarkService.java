@@ -3,7 +3,7 @@ package com.out4ider.selleing_backend.domain.bookmark.service;
 import com.out4ider.selleing_backend.domain.bookmark.entity.BookmarkEntity;
 import com.out4ider.selleing_backend.domain.bookmark.repository.BookmarkRepository;
 import com.out4ider.selleing_backend.domain.novel.entity.NovelEntity;
-import com.out4ider.selleing_backend.domain.novel.repository.NovelRepository;
+import com.out4ider.selleing_backend.domain.novel.repository.novel.NovelRepository;
 import com.out4ider.selleing_backend.domain.user.entity.UserEntity;
 import com.out4ider.selleing_backend.domain.user.repository.UserRepository;
 import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
@@ -22,8 +22,12 @@ public class BookmarkService {
 
     @Transactional
     public void bookmark(Long novelId, Long userId) {
-        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
-        NovelEntity novelEntity = novelRepository.findById(novelId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+        NovelEntity novelEntity = novelRepository.findById(novelId)
+                .orElseThrow(() -> new NotFoundElementException(
+                        ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundElementException(
+                        ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         BookmarkEntity bookmarkEntity = BookmarkEntity.builder()
                 .user(userEntity)
                 .novel(novelEntity)

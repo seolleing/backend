@@ -14,15 +14,17 @@ import org.springframework.web.bind.annotation.*;
 public class LikeController {
     private final LikeService likeService;
 
-    @PostMapping("/novels/{novelId}")
-    public ResponseEntity<?> likeNovel(@PathVariable(name = "novelId") Long id, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails){
-        likeService.likeNovel(id, simpleCustomUserDetails.getUserId());
+    @PostMapping("/novel/{novelId}")
+    public ResponseEntity<?> likeNovel(@PathVariable(name = "novelId") Long id,
+                                       @AuthenticationPrincipal SimpleCustomUserDetails userDetails) {
+        likeService.saveLikeNovel(id, userDetails.getUserId());
         return ResponseDto.onSuccess();
     }
 
-    @PostMapping("/comments/{commentId}")
-    public ResponseEntity<?> likeComment(@PathVariable(name = "commentId") Long id, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails){
-        likeService.likeComment(id,simpleCustomUserDetails.getUserId());
+    @PostMapping("/comment/{commentId}")
+    public ResponseEntity<?> likeComment(@PathVariable(name = "commentId") Long id,
+                                         @AuthenticationPrincipal SimpleCustomUserDetails userDetails) {
+        likeService.saveLikeComment(id, userDetails.getUserId());
         return ResponseDto.onSuccess();
     }
 }

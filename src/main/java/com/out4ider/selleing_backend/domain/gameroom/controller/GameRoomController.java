@@ -20,20 +20,22 @@ public class GameRoomController {
     private final GameRoomService gameRoomService;
 
     @PostMapping
-    public ResponseEntity<?> saveGameRoom(@RequestBody GameRoomRequestDto gameRoomRequestDto, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
-        GameRoomSaveResponseDto gameRoomSaveResponseDto = gameRoomService.save(gameRoomRequestDto, simpleCustomUserDetails.getUserId());
+    public ResponseEntity<?> saveGameRoom(@RequestBody GameRoomRequestDto gameRoomRequestDto,
+                                          @AuthenticationPrincipal SimpleCustomUserDetails userDetails) {
+        GameRoomSaveResponseDto gameRoomSaveResponseDto = gameRoomService.save(gameRoomRequestDto, userDetails.getUserId());
         return ResponseDto.onSuccess(gameRoomSaveResponseDto);
     }
 
     @GetMapping
-    public ResponseEntity<?> getGameRooms(@RequestParam(name = "page", required = false, defaultValue = "0") int page) {
-        List<GameRoomInquiryResponseDto> gameRoomInquiryResponseDtos = gameRoomService.getSome(page);
+    public ResponseEntity<?> getGameRooms(@RequestParam(name = "lastId", required = false) Long lastId) {
+        List<GameRoomInquiryResponseDto> gameRoomInquiryResponseDtos = gameRoomService.findGameRoomsByLatest(lastId);
         return ResponseDto.onSuccess(gameRoomInquiryResponseDtos);
     }
 
     @DeleteMapping("/{roomId}")
-    public ResponseEntity<?> deleteGameRoom(@PathVariable(name = "roomId") Long roomId, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
-        gameRoomService.delete(roomId, simpleCustomUserDetails.getUserId());
+    public ResponseEntity<?> deleteGameRoom(@PathVariable(name = "roomId") Long roomId,
+                                            @AuthenticationPrincipal SimpleCustomUserDetails userDetails) {
+        gameRoomService.delete(roomId, userDetails.getUserId());
         return ResponseDto.onSuccess();
     }
 
@@ -44,14 +46,14 @@ public class GameRoomController {
 //    }
 
     @GetMapping("/friend")
-    public ResponseEntity<?> getFriendRoom(@RequestParam("code") String code) {
-        GameRoomInquiryResponseDto gameRoomInquiryResponseDto = gameRoomService.getFriendRoom(code);
+    public ResponseEntity<?> joinFriendRoom(@RequestParam("code") String code) {
+        GameRoomInquiryResponseDto gameRoomInquiryResponseDto = gameRoomService.findFriendRoom(code);
         return ResponseDto.onSuccess(gameRoomInquiryResponseDto);
     }
 
     @GetMapping("/{roomId}")
     public ResponseEntity<?> joinRoom(@PathVariable(name = "roomId") Long roomId) {
-        GameRoomInquiryResponseDto gameRoomInquiryResponseDto = gameRoomService.getRoom(roomId);
+        GameRoomInquiryResponseDto gameRoomInquiryResponseDto = gameRoomService.findGameRoom(roomId);
         return ResponseDto.onSuccess(gameRoomInquiryResponseDto);
     }
 
@@ -63,8 +65,9 @@ public class GameRoomController {
 
     @PutMapping("/{roomId}")
     public ResponseEntity<?> updateRoom(@PathVariable(name = "roomId") Long roomId,
-                                        @RequestBody GameRoomRequestDto gameRoomRequestDto, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
-        gameRoomService.update(roomId, gameRoomRequestDto, simpleCustomUserDetails.getUserId());
+                                        @RequestBody GameRoomRequestDto gameRoomRequestDto,
+                                        @AuthenticationPrincipal SimpleCustomUserDetails userDetails) {
+        gameRoomService.update(roomId, gameRoomRequestDto, userDetails.getUserId());
         return ResponseDto.onSuccess();
     }
 }

@@ -7,7 +7,7 @@ import lombok.Setter;
 @Setter
 public class GameRoomRequestDto {
     String title;
-    byte maxHeadCount;
+    String maxHeadCount;
     String password;
     String startSentence;
 }

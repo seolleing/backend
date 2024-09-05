@@ -7,10 +7,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CustomCommentRepository {
-
     Optional<CommentEntity> findByIdWithUser(Long id);
 
-    List<CommentResponseDto> findByNovelId(Long novelId, Long lastCommentId);
+    List<CommentResponseDto> findOrderByCommentId(Long novelId, Long lastId);
 
-    List<CommentResponseDto> findByNovelId(Long novelId);
+    List<CommentResponseDto> findOrderByCommentId(Long novelId);
 }

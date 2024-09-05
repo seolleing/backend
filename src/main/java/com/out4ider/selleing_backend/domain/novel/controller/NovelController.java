@@ -23,28 +23,29 @@ public class NovelController {
 
     @PostMapping
     public ResponseEntity<?> saveNovel(@RequestBody NovelRequestDto novelRequestDto) {
-        Long novelId = novelService.save(novelRequestDto);
+        Long novelId = novelService.saveNovel(novelRequestDto);
         return ResponseDto.onSuccess(novelId);
     }
 
     @GetMapping
-    public ResponseEntity<?> getNovelsOrderByNovelId(
+    public ResponseEntity<?> getNovels(
             @RequestParam(name = "lastId", required = false) Long lastId) {
-        List<NovelResponseDto> novelResponseDtos = novelService.getSome(lastId);
+        List<NovelResponseDto> novelResponseDtos = novelService.findNovelsByLatest(lastId);
         return ResponseDto.onSuccess(novelResponseDtos);
     }
 
-    @GetMapping
-    public ResponseEntity<?> getNovelsOrderByLikeCount(
-            @RequestParam(name = "likeCount", required = false) Integer likeCount,
-            @RequestParam(name = "lastId", required = false) Long lastId) {
-        List<NovelResponseDto> novelResponseDtos = novelService.getSome2(likeCount, lastId);
+    @GetMapping("/popular")
+    public ResponseEntity<?> getNovels(
+            @RequestParam(name = "lastId", required = false) Long lastId,
+            @RequestParam(name = "likeCount", required = false) Integer likeCount) {
+        List<NovelResponseDto> novelResponseDtos = novelService.findNovelsByPopular(lastId, likeCount);
         return ResponseDto.onSuccess(novelResponseDtos);
     }
 
     @GetMapping("/{novelId}")
-    public ResponseEntity<?> getNovel(@PathVariable(name = "novelId") Long novelId, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
-        NovelTotalResponseDto novelTotalResponseDtos = novelService.get(novelId, simpleCustomUserDetails.getUserId());
+    public ResponseEntity<?> getNovel(@PathVariable(name = "novelId") Long novelId,
+                                      @AuthenticationPrincipal SimpleCustomUserDetails userDetails) {
+        NovelTotalResponseDto novelTotalResponseDtos = novelService.findNovel(novelId, userDetails.getUserId());
         return ResponseDto.onSuccess(novelTotalResponseDtos);
     }
 
@@ -55,8 +56,9 @@ public class NovelController {
     }
 
     @GetMapping("/bookmarks")
-    public ResponseEntity<?> getBookmarks(@RequestParam(name = "page", required = false, defaultValue = "0") int page, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
-        List<NovelResponseDto> novelResponseDtos = novelService.getBookmarks(page, simpleCustomUserDetails.getUserId());
+    public ResponseEntity<?> getBookmarks(@RequestParam(name = "lastId", required = false) Long lastId,
+                                          @AuthenticationPrincipal SimpleCustomUserDetails userDetails) {
+        List<NovelResponseDto> novelResponseDtos = novelService.findBookmarksByLatest(lastId, userDetails.getUserId());
         return ResponseDto.onSuccess(novelResponseDtos);
     }
 }

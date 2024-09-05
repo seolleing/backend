@@ -23,7 +23,7 @@ public class UserEntity {
     @Column(name = "email")
     private String email;
 
-    @Column(name="password")
+    @Column(name = "password")
     private String encryptedPassword;
 
     @Column(name = "nickname")

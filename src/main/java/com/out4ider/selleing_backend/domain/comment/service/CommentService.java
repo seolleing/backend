@@ -4,9 +4,9 @@ import com.out4ider.selleing_backend.domain.comment.dto.CommentRequestDto;
 import com.out4ider.selleing_backend.domain.comment.dto.CommentResponseDto;
 import com.out4ider.selleing_backend.domain.comment.entity.CommentEntity;
 import com.out4ider.selleing_backend.domain.comment.repository.CommentRepository;
-import com.out4ider.selleing_backend.domain.like.repository.LikeCommentRepository;
+import com.out4ider.selleing_backend.domain.like.repository.likecomment.LikeCommentRepository;
 import com.out4ider.selleing_backend.domain.novel.entity.NovelEntity;
-import com.out4ider.selleing_backend.domain.novel.repository.NovelRepository;
+import com.out4ider.selleing_backend.domain.novel.repository.novel.NovelRepository;
 import com.out4ider.selleing_backend.domain.user.entity.UserEntity;
 import com.out4ider.selleing_backend.domain.user.repository.UserRepository;
 import com.out4ider.selleing_backend.global.exception.ExceptionEnum;
@@ -34,11 +34,14 @@ public class CommentService {
 
     @Transactional
     public Long save(CommentRequestDto commentRequestDto, Long userId) {
-        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
-        NovelEntity novelEntity = novelRepository.findById(commentRequestDto.getNovelId()).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+        NovelEntity novelEntity = novelRepository.findById(commentRequestDto.getNovelId())
+                .orElseThrow(() -> new NotFoundElementException(
+                        ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundElementException(
+                        ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         CommentEntity commentEntity = CommentEntity.builder()
-                .novel(novelEntity)
-                .user(userEntity)
+                .novel(novelEntity).user(userEntity)
                 .content(commentRequestDto.getContent())
                 .build();
         commentRepository.save(commentEntity);
@@ -47,27 +50,33 @@ public class CommentService {
 
     @Transactional
     public void update(Long commentId, String content, Long userId) {
-        CommentEntity commentEntity = commentRepository.findByIdWithUser(commentId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+        CommentEntity commentEntity = commentRepository.findByIdWithUser(commentId)
+                .orElseThrow(() -> new NotFoundElementException(
+                        ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         if (commentEntity.getUser().getUserId().equals(userId)) {
             commentEntity.setContent(content);
             commentRepository.save(commentEntity);
         } else {
-            throw new NotAuthorizedException(ExceptionEnum.NOTAUTHORIZED.ordinal(), "you dont have authorization", HttpStatus.FORBIDDEN);
+            throw new NotAuthorizedException(
+                    ExceptionEnum.NOTAUTHORIZED.ordinal(), "you dont have authorization", HttpStatus.FORBIDDEN);
         }
     }
 
     @Transactional
     public void delete(Long commentId, Long userId) {
-        CommentEntity commentEntity = commentRepository.findByIdWithUser(commentId).orElseThrow(() -> new NotFoundElementException(ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
+        CommentEntity commentEntity = commentRepository.findByIdWithUser(commentId)
+                .orElseThrow(() -> new NotFoundElementException(
+                        ExceptionEnum.NOTFOUNDELEMENT.ordinal(), "This is not in DB", HttpStatus.LOCKED));
         if (commentEntity.getUser().getUserId().equals(userId)) {
-            likeCommentRepository.deleteByComment_id(commentEntity.getId());
+            likeCommentRepository.deleteByCommentId(commentEntity.getId());
             commentRepository.delete(commentEntity);
         } else {
-            throw new NotAuthorizedException(ExceptionEnum.NOTAUTHORIZED.ordinal(), "you dont have authorization", HttpStatus.FORBIDDEN);
+            throw new NotAuthorizedException(
+                    ExceptionEnum.NOTAUTHORIZED.ordinal(), "you dont have authorization", HttpStatus.FORBIDDEN);
         }
     }
 
-    public List<CommentResponseDto> getMore(Long novelId, Long lastCommentId) {
-        return commentRepository.findByNovelId(novelId, lastCommentId);
+    public List<CommentResponseDto> findMore(Long novelId, Long lastId) {
+        return commentRepository.findOrderByCommentId(novelId, lastId);
     }
 }

@@ -30,11 +30,12 @@ public class UserController {
     }
 
     @PatchMapping
-    public ResponseEntity<?> updateUser(@AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails, @RequestParam(name = "nickname") String nickname) {
-        userService.update(simpleCustomUserDetails.getUserId(), nickname);
+    public ResponseEntity<?> updateUser(@RequestParam(name = "nickname") String nickname,
+                                        @AuthenticationPrincipal SimpleCustomUserDetails userDetails) {
+        userService.update(userDetails.getUserId(), nickname);
         return ResponseDto.onSuccess(nickname);
     }
-    
+
     //ERD 완성되고 짜기
     /*@DeleteMapping
     public ResponseEntity<?> deleteUser() {

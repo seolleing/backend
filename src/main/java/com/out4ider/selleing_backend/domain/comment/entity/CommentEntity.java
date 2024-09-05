@@ -11,7 +11,7 @@ import org.hibernate.annotations.DynamicInsert;
 import java.util.List;
 
 @Entity
-@Table(name="comment")
+@Table(name = "comment")
 @Getter
 @Builder
 @AllArgsConstructor
@@ -20,7 +20,7 @@ import java.util.List;
 public class CommentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="comment_id")
+    @Column(name = "comment_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,7 +31,7 @@ public class CommentEntity {
     @JoinColumn(name = "novel_id")
     private NovelEntity novel;
 
-    @Column(name="comment_content")
+    @Column(name = "comment_content")
     @Setter
     private String content;
 
@@ -42,7 +42,7 @@ public class CommentEntity {
     @ColumnDefault("0")
     private int likeCount;
 
-    public void incrementLikeCount(){
-        this.likeCount+=1;
+    public void incrementLikeCount() {
+        this.likeCount += 1;
     }
 }

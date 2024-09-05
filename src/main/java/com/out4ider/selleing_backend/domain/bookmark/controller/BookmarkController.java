@@ -15,14 +15,16 @@ public class BookmarkController {
     private final BookmarkService bookmarkService;
 
     @PostMapping("/{novelId}")
-    public ResponseEntity<?> bookmarkNovel(@PathVariable(name = "novelId") Long novelId, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails){
-        bookmarkService.bookmark(novelId,simpleCustomUserDetails.getUserId());
+    public ResponseEntity<?> bookmarkNovel(@PathVariable(name = "novelId") Long novelId,
+                                           @AuthenticationPrincipal SimpleCustomUserDetails userDetails) {
+        bookmarkService.bookmark(novelId, userDetails.getUserId());
         return ResponseDto.onSuccess();
     }
 
     @DeleteMapping("/{novelId}")
-    public ResponseEntity<?> unBookmarkNovel(@PathVariable(name = "novelId") Long novelId, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails){
-        bookmarkService.unBookmark(novelId,simpleCustomUserDetails.getUserId());
+    public ResponseEntity<?> unBookmarkNovel(@PathVariable(name = "novelId") Long novelId,
+                                             @AuthenticationPrincipal SimpleCustomUserDetails userDetails) {
+        bookmarkService.unBookmark(novelId, userDetails.getUserId());
         return ResponseDto.onSuccess();
     }
 }

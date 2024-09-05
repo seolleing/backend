@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BookmarkRepository extends JpaRepository<BookmarkEntity, Long> {
     void deleteByNovel_NovelIdAndUser_UserId(Long novelId, Long userId);
+
+    boolean existsByNovel_NovelIdAndUser_UserId(Long novelId, Long userId);
 }

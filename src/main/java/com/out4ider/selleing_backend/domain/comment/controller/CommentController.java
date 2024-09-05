@@ -19,26 +19,31 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping
-    public ResponseEntity<?> saveComment(@RequestBody CommentRequestDto commentRequestDto, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
-        Long commentId = commentService.save(commentRequestDto, simpleCustomUserDetails.getUserId());
+    public ResponseEntity<?> saveComment(@RequestBody CommentRequestDto commentRequestDto,
+                                         @AuthenticationPrincipal SimpleCustomUserDetails userDetails) {
+        Long commentId = commentService.save(commentRequestDto, userDetails.getUserId());
         return ResponseDto.onSuccess(commentId);
     }
 
     @PutMapping("/{commentId}")
-    public ResponseEntity<?> updateComment(@PathVariable(name = "commentId") Long commentId, @RequestParam(name = "content") String content, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
-        commentService.update(commentId, content, simpleCustomUserDetails.getUserId());
+    public ResponseEntity<?> updateComment(@PathVariable(name = "commentId") Long commentId,
+                                           @RequestParam(name = "content") String content,
+                                           @AuthenticationPrincipal SimpleCustomUserDetails userDetails) {
+        commentService.update(commentId, content, userDetails.getUserId());
         return ResponseDto.onSuccess();
     }
 
     @DeleteMapping("/{commentId}")
-    public ResponseEntity<?> deleteComment(@PathVariable(name = "commentId") Long commentId, @AuthenticationPrincipal SimpleCustomUserDetails simpleCustomUserDetails) {
-        commentService.delete(commentId, simpleCustomUserDetails.getUserId());
+    public ResponseEntity<?> deleteComment(@PathVariable(name = "commentId") Long commentId,
+                                           @AuthenticationPrincipal SimpleCustomUserDetails userDetails) {
+        commentService.delete(commentId, userDetails.getUserId());
         return ResponseDto.onSuccess();
     }
 
-    @GetMapping("/{noveld}")
-    public ResponseEntity<?> getComments(@PathVariable(name = "novelId") Long novelId, @RequestParam(name = "lastCommentId") Long lastCommentId){
-        List<CommentResponseDto> commentResponseDtos = commentService.getMore(novelId,lastCommentId);
+    @GetMapping("/{novelId}")
+    public ResponseEntity<?> getComments(@PathVariable(name = "novelId") Long novelId,
+                                         @RequestParam(name = "lastId") Long lastId) {
+        List<CommentResponseDto> commentResponseDtos = commentService.findMore(novelId, lastId);
         return ResponseDto.onSuccess(commentResponseDtos);
     }
 }
