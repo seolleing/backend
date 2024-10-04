@@ -23,6 +23,7 @@ import java.util.List;
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
+    private final JWTUtil jwtUtil;
 
     @Transactional
     public void save(UserRequestDto userRequestDto) {
@@ -40,10 +41,10 @@ public class UserService {
         UserEntity user = userRepository.findByEmail(userRequestDto.getEmail())
                 .orElseThrow(() -> new NotFoundElementException("not found in user database"));
         if (!PasswordEncryptionUtil.checkPassword(
-                userRequestDto.getPassword(),user.getEncryptedPassword())){
+                userRequestDto.getPassword(), user.getEncryptedPassword())) {
             throw new NotMatchedException("unmatched password");
         }
-        List<Pair<String, String>> tokens = JWTUtil.generateTokens(user.getId(), user.getRole());
+        List<Pair<String, String>> tokens = jwtUtil.generateTokens(user.getId(), user.getRole());
         UserResponseDto userResponseDto = new UserResponseDto(user.getId(), user.getNickname());
         return new LoginResponseDto(tokens, userResponseDto);
     }
