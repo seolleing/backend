@@ -21,6 +21,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable);
         http
                 .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers("/eureka/**").permitAll()
                         .anyRequest().authenticated());
         http
                 .httpBasic(Customizer.withDefaults());
