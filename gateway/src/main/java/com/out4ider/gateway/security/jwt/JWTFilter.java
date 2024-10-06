@@ -1,10 +1,11 @@
-package com.out4ider.gateway.security;
+package com.out4ider.gateway.security.jwt;
 
+import com.out4ider.gateway.exception.kind.ExpiredTokenException;
+import com.out4ider.gateway.exception.kind.InvalidTokenException;
 import com.out4ider.gateway.util.JWTUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -43,12 +44,12 @@ public class JWTFilter implements WebFilter {
                 exchange.getAttributes().put("reissue", true);
                 return chain.filter(exchange);
             } else {
-                throw new RuntimeException("access token expired");
+                return Mono.error(new ExpiredTokenException("access token expired"));
             }
         }
         String category = jwtUtil.getCategory(accessToken);
         if (!category.equals("access")) {
-            throw new RuntimeException("This is Invalid Token");
+            return Mono.error(new InvalidTokenException("unmatched access category"));
         }
         Long userId = jwtUtil.getUserId(accessToken);
         String role = jwtUtil.getRole(accessToken);

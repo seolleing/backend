@@ -1,9 +1,12 @@
 package com.out4ider.gateway.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.out4ider.gateway.redis.RedisService;
-import com.out4ider.gateway.security.CustomLogoutFilter;
-import com.out4ider.gateway.security.JWTFilter;
-import com.out4ider.gateway.security.ReissueFilter;
+import com.out4ider.gateway.security.custom.CustomAuthenticationEntryPoint;
+import com.out4ider.gateway.security.custom.CustomExceptionHandlingFilter;
+import com.out4ider.gateway.security.custom.CustomLogoutFilter;
+import com.out4ider.gateway.security.jwt.JWTFilter;
+import com.out4ider.gateway.security.jwt.ReissueFilter;
 import com.out4ider.gateway.util.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +24,7 @@ import org.springframework.security.web.server.context.NoOpServerSecurityContext
 public class SecurityConfig {
     private final JWTUtil jwtUtil;
     private final RedisService redisService;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
@@ -38,6 +42,8 @@ public class SecurityConfig {
                         .pathMatchers("/api/users/login").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/users").permitAll()
+                        .pathMatchers("/eureka/**").permitAll()
+                        .pathMatchers("/actuator/**").permitAll()
                         .anyExchange().authenticated());
         http
                 .addFilterBefore(new JWTFilter(jwtUtil), SecurityWebFiltersOrder.AUTHENTICATION)
@@ -45,6 +51,12 @@ public class SecurityConfig {
                         SecurityWebFiltersOrder.AUTHENTICATION)
                 .addFilterBefore(new CustomLogoutFilter(jwtUtil, redisService),
                         SecurityWebFiltersOrder.LOGOUT);
+        http
+                .addFilterAfter(new CustomExceptionHandlingFilter(objectMapper),
+                        SecurityWebFiltersOrder.LAST);
+        http
+                .exceptionHandling(exceptionHandlingSpec -> exceptionHandlingSpec
+                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint(objectMapper)));
         return http.build();
     }
 }

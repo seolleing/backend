@@ -1,4 +1,4 @@
-package com.out4ider.gateway.security;
+package com.out4ider.gateway.security.custom;
 
 import com.out4ider.gateway.redis.RedisKeyPrefix;
 import com.out4ider.gateway.redis.RedisService;
@@ -8,7 +8,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
